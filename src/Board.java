@@ -5,7 +5,7 @@ import java.util.*;
 public class Board {
     private int rows;
     private int columns;
-    private char[][] grid;
+    private int numPieces; // Number of pieces specified in the input file
     private final Map<Character, Piece> pieces = new HashMap<>();
 
     public static final char PRIMARY_PIECE = 'P';
@@ -22,56 +22,60 @@ public class Board {
             String filePath = "../test/" + inputScanner.nextLine().trim();
 
             try {
-                Scanner fileScanner = new Scanner(new File(filePath));
-
-                if (!fileScanner.hasNextLine()) {
-                    System.out.println("Error: File kosong atau tidak valid.");
-                    return;
-                }
-
-                String[] dimensions = fileScanner.nextLine().split(" ");
-                if (dimensions.length != 2) {
-                    System.out.println("Error: Baris pertama harus terdiri dari 2 bilangan bulat (A B).");
-                    return;
-                }
-
-                rows = Integer.parseInt(dimensions[0]);
-                columns = Integer.parseInt(dimensions[1]);
-
-                if (!fileScanner.hasNextLine()) {
-                    System.out.println("Error: Baris kedua harus ada untuk menyatakan jumlah kendaraan.");
-                    return;
-                }
-
-                Integer.valueOf(fileScanner.nextLine().trim());
-
-                grid = new char[rows + 1][columns + 1];
-
-                for (int i = 0; i <= rows; i++) {
-                    for (int j = 0; j <= columns; j++) {
-                        grid[i][j] = ' ';
+                try (Scanner fileScanner = new Scanner(new File(filePath))) {
+                    if (!fileScanner.hasNextLine()) {
+                        System.out.println("Error: File kosong atau tidak valid.");
+                        return;
                     }
+
+                    String[] dimensions = fileScanner.nextLine().split(" ");
+                    if (dimensions.length != 2) {
+                        System.out.println("Error: Baris pertama harus terdiri dari 2 bilangan bulat (A B).");
+                        return;
+                    }
+
+                    rows = Integer.parseInt(dimensions[0]);
+                    columns = Integer.parseInt(dimensions[1]);
+
+                    if (!fileScanner.hasNextLine()) {
+                        System.out.println("Error: Baris kedua harus ada untuk menyatakan jumlah kendaraan.");
+                        return;
+                    }
+
+                    numPieces = Integer.parseInt(fileScanner.nextLine().trim());
+
+                    // Store piece coordinates instead of creating a grid immediately
+                    Map<Character, List<int[]>> pieceCoordinates = new HashMap<>();
+
+                    // Process each line of the file and extract piece coordinates
+                    int currentRow = 0;
+                    while (fileScanner.hasNextLine() && currentRow <= rows) {
+                        String line = fileScanner.nextLine();
+                        processLine(line, currentRow, pieceCoordinates);
+                        currentRow++;
+                    }
+
+                    if (!verifyBoardConstraints(pieceCoordinates)) {
+                        System.out.println("Verifikasi papan gagal. Proses dihentikan.");
+                        return;
+                    }
+
+                    normalizeCoordinates(pieceCoordinates);
+
+                    if (!validateNormalizedCoordinates(pieceCoordinates)) {
+                        System.out.println("Error: Koordinat tidak valid setelah normalisasi.");
+                        return;
+                    }
+
+                    createPieces(pieceCoordinates);
                 }
 
-                String line = fileScanner.nextLine();
-                Map<Character, List<int[]>> pieceCoordinates = new HashMap<>();
-
-                processLine(line, 0, fileScanner, pieceCoordinates);
-
-                if (!verifyBoardConstraints()) {
-                    System.out.println("Verifikasi papan gagal. Proses dihentikan.");
-                    return;
+                // Verify that the number of pieces matches the specified value
+                if (pieces.size() + (exitPos != null ? 1 : 0) != numPieces) {
+                    System.out.println("Warning: Jumlah kendaraan dalam file (" + 
+                        (pieces.size() + (exitPos != null ? 1 : 0)) + 
+                        ") tidak sesuai dengan yang dinyatakan (" + numPieces + ")");
                 }
-
-                normalizeCoordinates(pieceCoordinates);
-
-                if (!validateNormalizedCoordinates(pieceCoordinates)) {
-                    System.out.println("Error: Koordinat tidak valid setelah normalisasi.");
-                    return;
-                }
-
-                createPieces(pieceCoordinates);
-                rebuildBoard();
 
                 System.out.println("Input berhasil diproses.");
                 if (exitPos != null)
@@ -87,76 +91,51 @@ public class Board {
         }
     }
 
-    private boolean verifyBoardConstraints() {
-        int countK = 0;
-        int kRow = -1, kCol = -1;
-        boolean hasP = false;
+    private void processLine(String line, int row, Map<Character, List<int[]>> pieceCoordinates) {
+        if (row > rows) {
+            System.out.println("Error: Jumlah baris dalam file melebihi batas A + 1 (" + (rows + 1) + ").");
+            return;
+        }
 
-        for (int i = 0; i <= rows; i++) {
-            for (int j = 0; j <= columns; j++) {
-                char ch = grid[i][j];
+        if (line.length() > columns + 1) {
+            System.out.println("Error: Panjang baris ke-" + row + " melebihi batas B + 1 (" + (columns + 1) + ").");
+            return;
+        }
+
+        for (int col = 0; col < line.length(); col++) {
+            char ch = line.charAt(col);
+
+            if (ch != ' ' && ch != '.') {
+                pieceCoordinates.computeIfAbsent(ch, _ -> new ArrayList<>()).add(new int[]{row, col});
                 if (ch == EXIT) {
-                    countK++;
-                    kRow = i;
-                    kCol = j;
-                }
-                if (ch == PRIMARY_PIECE) {
-                    hasP = true;
+                    exitPos = new int[]{row, col};
                 }
             }
         }
+    }
 
-        if (countK != 1) {
-            System.out.println("Error: Harus ada tepat satu 'K' pada papan, ditemukan: " + countK);
+    private boolean verifyBoardConstraints(Map<Character, List<int[]>> pieceCoordinates) {
+        // Verify there is exactly one exit 'K'
+        List<int[]> exitCoords = pieceCoordinates.getOrDefault(EXIT, Collections.emptyList());
+        if (exitCoords.size() != 1) {
+            System.out.println("Error: Harus ada tepat satu 'K' pada papan, ditemukan: " + exitCoords.size());
             return false;
         }
-
+        
+        int[] exit = exitCoords.get(0);
+        int kRow = exit[0];
+        int kCol = exit[1];
+        
+        // Verify exit is on the border
         if (!(kRow == 0 || kRow == rows || kCol == 0 || kCol == columns)) {
             System.out.println("Error: 'K' harus berada di baris 0 atau " + rows + ", atau kolom 0 atau " + columns);
             return false;
         }
 
-        if (!hasP) {
+        // Verify there is at least one primary piece 'P'
+        if (!pieceCoordinates.containsKey(PRIMARY_PIECE)) {
             System.out.println("Error: Papan harus mengandung setidaknya satu 'P'");
             return false;
-        }
-
-        return true;
-    }
-
-    private boolean processLine(String line, int row, Scanner fileScanner,
-                             Map<Character, List<int[]>> pieceCoordinates) {
-
-        if (row > rows) {
-            System.out.println("Error: Jumlah baris dalam file melebihi batas A + 1 (" + (rows + 1) + ").");
-            return false;
-        }
-
-        if (line.length() > columns + 1) {
-            System.out.println("Error: Panjang baris ke-" + row + " melebihi batas B + 1 (" + (columns + 1) + ").");
-            return false;
-        }
-
-        int col = 0;
-
-        for (int i = 0; i < line.length(); i++) {
-            char ch = line.charAt(i);
-
-            grid[row][col] = ch;
-
-            if (ch != ' ') {
-                if (ch != '.') {
-                    pieceCoordinates.computeIfAbsent(ch, _ -> new ArrayList<>()).add(new int[]{row, col});
-                }
-                if (ch == EXIT) {
-                    exitPos = new int[]{row, col};
-                }
-            }
-            col++;
-        }
-
-        if (fileScanner.hasNextLine()) {
-            return processLine(fileScanner.nextLine(), row + 1, fileScanner, pieceCoordinates);
         }
 
         return true;
@@ -260,15 +239,18 @@ public class Board {
         }
     }
 
-    public void rebuildBoard() {
-        grid = new char[rows][columns];
+    // Generate grid only when needed
+    public char[][] generateGrid() {
+        char[][] grid = new char[rows][columns];
 
+        // Initialize grid with empty spaces
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < columns; j++) {
                 grid[i][j] = '.';
             }
         }
 
+        // Place pieces on the grid
         for (Piece piece : pieces.values()) {
             for (int[] pos : piece.getPositions()) {
                 int r = pos[0];
@@ -279,15 +261,14 @@ public class Board {
             }
         }
 
-        System.out.println("Board berhasil dibangun ulang (tanpa pintu keluar).");
+        return grid;
     }
 
     public void printBoard() {
-        System.out.println("Board (" + rows + "x" + columns + "):");
+        char[][] grid = generateGrid();
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < columns; j++) {
-                char symbol = grid[i][j];
-                System.out.print(symbol);
+                System.out.print(grid[i][j]);
             }
             System.out.println();
         }
@@ -316,6 +297,8 @@ public class Board {
             return false;
         }
 
+        // Generate current grid to check for collisions
+        char[][] grid = generateGrid();
         List<int[]> positions = piece.getPositions();
 
         switch (direction.toLowerCase()) {
@@ -373,30 +356,53 @@ public class Board {
         }
     }
 
-    public boolean movePiece(char symbol, String direction) {
-        if (!canMovePiece(symbol, direction)) return false;
-
-        Piece piece = pieces.get(symbol);
-        switch (direction.toLowerCase()) {
-            case "up" -> piece.moveUp();
-            case "down" -> piece.moveDown();
-            case "left" -> piece.moveLeft();
-            case "right" -> piece.moveRight();
-            default -> {
-                return false;
+    public Board movePiece(char symbol, String direction) {
+        if (!this.canMovePiece(symbol, direction)) {
+            System.out.println("Tidak bisa memindahkan kendaraan " + symbol + " ke arah " + direction);
+            return null;
+        }
+        
+        // Create a new board with the same dimensions and properties
+        Board newBoard = new Board();
+        newBoard.rows = this.rows;
+        newBoard.columns = this.columns;
+        newBoard.numPieces = this.numPieces;
+        newBoard.exitPos = this.exitPos != null ? new int[]{this.exitPos[0], this.exitPos[1]} : null;
+        
+        // Copy all pieces except the one to be moved
+        for (Map.Entry<Character, Piece> entry : this.pieces.entrySet()) {
+            if (entry.getKey() != symbol) {
+                Piece originalPiece = entry.getValue();
+                List<int[]> newPositions = new ArrayList<>();
+                for (int[] pos : originalPiece.getPositions()) {
+                    newPositions.add(new int[]{pos[0], pos[1]});
+                }
+                newBoard.pieces.put(entry.getKey(), new Piece(entry.getKey(), originalPiece.getDirection(), newPositions));
             }
         }
-
-        rebuildBoard();
-        return true;
+        
+        // Create a new piece with updated positions
+        Piece originalPiece = this.pieces.get(symbol);
+        List<int[]> newPositions = new ArrayList<>();
+        for (int[] pos : originalPiece.getPositions()) {
+            int[] newPos;
+            switch (direction.toLowerCase()) {
+                case "up" -> newPos = new int[]{pos[0] - 1, pos[1]};
+                case "down" -> newPos = new int[]{pos[0] + 1, pos[1]};
+                case "left" -> newPos = new int[]{pos[0], pos[1] - 1};
+                case "right" -> newPos = new int[]{pos[0], pos[1] + 1};
+                default -> newPos = new int[]{pos[0], pos[1]};
+            }
+            newPositions.add(newPos);
+        }
+        
+        newBoard.pieces.put(symbol, new Piece(symbol, originalPiece.getDirection(), newPositions));
+        
+        return newBoard;
     }
 
     public Map<Character, Piece> getPieces() {
         return pieces;
-    }
-
-    public char[][] getGrid() {
-        return grid;
     }
 
     public int getRows() {
@@ -411,10 +417,20 @@ public class Board {
         return exitPos;
     }
 
+    public int getNumPieces() {
+        return numPieces;
+    }
+
     public static void main(String[] args) {
         Board board = new Board();
         board.readInputFromFile();
         board.printBoard();
         board.printPieces();
+        Board movedBoard = board.movePiece('I', "left");
+        if (movedBoard != null) {
+            movedBoard.printBoard();
+        } else {
+            System.out.println("Tidak bisa memindahkan kendaraan.");
+        }
     }
 }
