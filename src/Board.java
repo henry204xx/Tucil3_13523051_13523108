@@ -49,9 +49,10 @@ public class Board {
 
                     // Process each line of the file and extract piece coordinates
                     int currentRow = 0;
-                    while (fileScanner.hasNextLine() && currentRow <= rows) {
+                    boolean validLine = true;
+                    while (fileScanner.hasNextLine() && validLine) {
                         String line = fileScanner.nextLine();
-                        processLine(line, currentRow, pieceCoordinates);
+                        validLine = processLine(line, currentRow, pieceCoordinates);
                         currentRow++;
                     }
 
@@ -71,9 +72,9 @@ public class Board {
                 }
 
                 // Verify that the number of pieces matches the specified value
-                if (pieces.size() + (exitPos != null ? 1 : 0) != numPieces) {
+               if ((pieces.size() - 1) != numPieces) {
                     System.out.println("Warning: Jumlah kendaraan dalam file (" + 
-                        (pieces.size() + (exitPos != null ? 1 : 0)) + 
+                        (pieces.size() - 1) + 
                         ") tidak sesuai dengan yang dinyatakan (" + numPieces + ")");
                 }
 
@@ -91,15 +92,16 @@ public class Board {
         }
     }
 
-    private void processLine(String line, int row, Map<Character, List<int[]>> pieceCoordinates) {
+    private boolean processLine(String line, int row, Map<Character, List<int[]>> pieceCoordinates) {
+      
         if (row > rows) {
-            System.out.println("Error: Jumlah baris dalam file melebihi batas A + 1 (" + (rows + 1) + ").");
-            return;
+            System.out.println("Error: Jumlah baris dalam file melebihi batas (" + (rows + 1) + ").");
+            return false;
         }
 
         if (line.length() > columns + 1) {
-            System.out.println("Error: Panjang baris ke-" + row + " melebihi batas B + 1 (" + (columns + 1) + ").");
-            return;
+            System.out.println("Error: Panjang baris ke-" + row + " melebihi batas (" + (columns + 1) + ").");
+            return false;
         }
 
         for (int col = 0; col < line.length(); col++) {
@@ -112,6 +114,7 @@ public class Board {
                 }
             }
         }
+        return true;
     }
 
     private boolean verifyBoardConstraints(Map<Character, List<int[]>> pieceCoordinates) {
@@ -150,6 +153,7 @@ public class Board {
         int exitRow = exitPos[0];
         int exitCol = exitPos[1];
 
+        // Adjust all piece coordinates
         for (Map.Entry<Character, List<int[]>> entry : pieceCoordinates.entrySet()) {
             char piece = entry.getKey();
             if (piece == EXIT) continue;
@@ -160,19 +164,21 @@ public class Board {
                 for (int[] coord : coords) {
                     coord[0] -= 1;
                 }
-            } else if (exitRow == rows) {
-                exitPos[0] -= 1;
             } else if (exitCol == 0) {
                 for (int[] coord : coords) {
                     coord[1] -= 1;
                 }
-            } else if (exitCol == columns) {
-                exitPos[1] -= 1;
             }
         }
 
-        System.out.println("Koordinat dinormalisasi berdasarkan posisi pintu keluar.");
+        // Adjust exitPos ONCE, outside the loop
+        if (exitRow == rows) {
+            exitPos[0] -= 1;
+        } else if (exitCol == columns) {
+            exitPos[1] -= 1;
+        }
     }
+
 
     private boolean validateNormalizedCoordinates(Map<Character, List<int[]>> pieceCoordinates) {
         for (Map.Entry<Character, List<int[]>> entry : pieceCoordinates.entrySet()) {
