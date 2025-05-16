@@ -3,23 +3,17 @@ import java.util.List;
 
 public class Piece {
     private char symbol;
-    private String color;
     private String direction;
     private List<int[]> positions;
 
-    public Piece(char symbol, String color, String direction, List<int[]> positions) {
+    public Piece(char symbol, String direction, List<int[]> positions) {
         this.symbol = symbol;
-        this.color = color;
         this.direction = direction;
         this.positions = positions;
     }
 
     public char getSymbol() {
         return symbol;
-    }
-
-    public String getColor() {
-        return color;
     }
 
     public String getDirection() {
@@ -31,10 +25,6 @@ public class Piece {
     }
     public void setSymbol(char symbol) {
         this.symbol = symbol;
-    }
-
-    public void setColor(String color) {
-        this.color = color;
     }
 
     public void setDirection(String direction) {
