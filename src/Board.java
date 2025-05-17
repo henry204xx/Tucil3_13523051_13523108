@@ -427,6 +427,14 @@ public class Board {
         return numPieces;
     }
 
+    public List<int[]> getPrimaryPiecePosition() {
+        Piece primary = pieces.get(PRIMARY_PIECE);
+        if (primary != null) {
+            return primary.getPositions();
+        }
+        return Collections.emptyList();
+    }
+
     public static void main(String[] args) {
         Board board = new Board();
         board.readInputFromFile();
@@ -437,6 +445,13 @@ public class Board {
             movedBoard.printBoard();
         } else {
             System.out.println("Tidak bisa memindahkan kendaraan.");
+        }
+
+        //test primary piece position
+        List<int[]> primaryPositions = board.getPrimaryPiecePosition();
+        System.out.println("Posisi kendaraan utama 'P': ");
+        for (int[] pos : primaryPositions) {
+            System.out.print("[" + pos[0] + "," + pos[1] + "] ");
         }
     }
 }
