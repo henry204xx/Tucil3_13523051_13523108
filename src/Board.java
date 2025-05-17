@@ -108,7 +108,7 @@ public class Board {
             char ch = line.charAt(col);
 
             if (ch != ' ' && ch != '.') {
-                pieceCoordinates.computeIfAbsent(ch, _ -> new ArrayList<>()).add(new int[]{row, col});
+                pieceCoordinates.computeIfAbsent(ch, k -> new ArrayList<>()).add(new int[]{row, col});
                 if (ch == EXIT) {
                     exitPos = new int[]{row, col};
                 }
@@ -435,16 +435,38 @@ public class Board {
         return Collections.emptyList();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Board board = (Board) o;
+        return Arrays.deepEquals(this.generateGrid(), board.generateGrid());
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.deepHashCode(generateGrid());
+    }
+
     public static void main(String[] args) {
         Board board = new Board();
         board.readInputFromFile();
         board.printBoard();
         board.printPieces();
         Board movedBoard = board.movePiece('I', "left");
+        Board board1 = board.movePiece('I', "left");
+
         if (movedBoard != null) {
             movedBoard.printBoard();
         } else {
             System.out.println("Tidak bisa memindahkan kendaraan.");
+        }
+
+        if(movedBoard.equals(board1)){
+            System.err.println("hei ini sama");
+        }
+        if(movedBoard.hashCode() == board1.hashCode()){
+            System.err.println("hei ini sama hashnya");
         }
 
         //test primary piece position
