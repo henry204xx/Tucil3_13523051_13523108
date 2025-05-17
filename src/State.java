@@ -6,13 +6,15 @@ public class State {
     private String moveDirection;  // "Up", "Down", "Left", "Right"
     private char movedPiece;       // 'A', 'B', etc.
     private int totalCost;
+    private int countSteps;     
 
-    public State(Board prevBoard, Board currBoard, String moveDirection, char movedPiece) {
+    public State(Board prevBoard, Board currBoard, String moveDirection, char movedPiece, int countSteps) {
         this.prevBoard = prevBoard;
         this.currBoard = currBoard;
         this.moveDirection = moveDirection;
         this.movedPiece = movedPiece;
         this.totalCost = 0;
+        this.countSteps = countSteps;
     }
 
     public Board getPrevBoard() {
@@ -55,19 +57,21 @@ public class State {
         this.totalCost = totalCost;
     }
 
+    public int getCountSteps() {
+        return countSteps;
+    }
+
+    public void setCountSteps(int countSteps) {
+        this.countSteps = countSteps;
+    }
+
     public boolean isGoalState() {
         Board board = this.currBoard;
-        if (board == null) {
-            return false;
-        }
-        
-        // Get the exit position
+        if (board == null) return false;
+
         int[] exitPos = board.getExitPos();
-        if (exitPos == null) {
-            return false;
-        }
-        
-        // Check if any primary piece is at the exit position
+        if (exitPos == null) return false;
+
         List<int[]> primaryPositions = board.getPrimaryPiecePosition();
         for (int[] position : primaryPositions) {
             if (position[0] == exitPos[0] && position[1] == exitPos[1]) {
