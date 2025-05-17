@@ -1,7 +1,7 @@
 public class PrioQueue {
-    private final State[] queue;
+    private State[] queue;
     private int size;
-    private final int capacity;
+    private int capacity;
 
     public PrioQueue(int capacity) {
         this.capacity = capacity;
@@ -11,12 +11,21 @@ public class PrioQueue {
 
     public void enqueue(State state) {
         if (size == capacity) {
-            throw new IllegalStateException("Queue is full");
+            resize();
         }
         queue[size] = state;
         size++;
         moveUp(size - 1);
     }
+
+
+    private void resize() {
+        capacity *= 2;
+        State[] newQueue = new State[capacity];
+        System.arraycopy(queue, 0, newQueue, 0, size);
+        queue = newQueue;
+    }
+
 
     public State dequeue() {
         if (size == 0) {
