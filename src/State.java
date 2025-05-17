@@ -1,4 +1,7 @@
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class State {
     private Board prevBoard;
@@ -80,4 +83,42 @@ public class State {
         }
         return false;
     }
+
+    private List<State> getSuccessors(State state) {
+        Board currentBoard = state.getCurrBoard();
+        if (currentBoard == null) return Collections.emptyList();
+
+        Map<Character, Piece> pieces = currentBoard.getPieces();
+        List<State> successors = new ArrayList<>();
+
+        for (Map.Entry<Character, Piece> entry : pieces.entrySet()) {
+            char pieceSymbol = entry.getKey();
+            Piece piece = entry.getValue();
+            String pieceDirection = piece.getDirection();
+
+            String[] directionsToTry = switch (pieceDirection) {
+                case "horizontal" -> new String[]{"left", "right"};
+                case "vertical" -> new String[]{"up", "down"};
+                default -> new String[]{"up", "down", "left", "right"};
+            };
+
+            for (String direction : directionsToTry) {
+                if (currentBoard.canMovePiece(pieceSymbol, direction)) {
+                    Board newBoard = currentBoard.movePiece(pieceSymbol, direction);
+                    if (newBoard != null) {
+                        State newState = new State(
+                            currentBoard,
+                            newBoard,
+                            direction,
+                            pieceSymbol,
+                            state.getCountSteps() + 1
+                        );
+                        successors.add(newState);
+                    }
+                }
+            }
+        }
+        return successors;
+    }
+
 }
