@@ -485,6 +485,77 @@ public class Board {
         return Arrays.deepHashCode(generateGrid());
     }
 
+    public void readInputFromFileGUI(String filePath) {
+        try {
+            try (Scanner fileScanner = new Scanner(new File(filePath))) {
+                if (!fileScanner.hasNextLine()) {
+                    System.out.println("Error: File kosong atau tidak valid.");
+                    return;
+                }
+
+                String[] dimensions = fileScanner.nextLine().split(" ");
+                if (dimensions.length != 2) {
+                    System.out.println("Error: Baris pertama harus terdiri dari 2 bilangan bulat (A B).");
+                    return;
+                }
+
+                rows = Integer.parseInt(dimensions[0]);
+                columns = Integer.parseInt(dimensions[1]);
+
+                if (!fileScanner.hasNextLine()) {
+                    System.out.println("Error: Baris kedua harus ada untuk menyatakan jumlah kendaraan.");
+                    return;
+                }
+
+                numPieces = Integer.parseInt(fileScanner.nextLine().trim());
+
+                // Store piece coordinates instead of creating a grid immediately
+                Map<Character, List<int[]>> pieceCoordinates = new HashMap<>();
+
+                // Process each line of the file and extract piece coordinates
+                int currentRow = 0;
+                boolean validLine = true;
+                while (fileScanner.hasNextLine() && validLine) {
+                    String line = fileScanner.nextLine();
+                    validLine = processLine(line, currentRow, pieceCoordinates);
+                    currentRow++;
+                }
+
+                if (!verifyBoardConstraints(pieceCoordinates)) {
+                    System.out.println("Verifikasi papan gagal. Proses dihentikan.");
+                    return;
+                }
+
+                normalizeCoordinates(pieceCoordinates);
+
+                if (!validateNormalizedCoordinates(pieceCoordinates)) {
+                    System.out.println("Error: Koordinat tidak valid setelah normalisasi.");
+                    return;
+                }
+
+                createPieces(pieceCoordinates);
+            }
+
+            // Verify that the number of pieces matches the specified value
+            if ((pieces.size() - 1) != numPieces) {
+                System.out.println("Warning: Jumlah kendaraan dalam file (" + 
+                    (pieces.size() - 1) + 
+                    ") tidak sesuai dengan yang dinyatakan (" + numPieces + ")");
+            }
+
+            System.out.println("Input berhasil diproses.");
+            if (exitPos != null)
+                System.out.println("Posisi pintu keluar 'K': [" + exitPos[0] + "," + exitPos[1] + "]");
+            else
+                System.out.println("Pintu keluar 'K' tidak ditemukan.");
+
+        } catch (FileNotFoundException e) {
+            System.out.println("File tidak ditemukan: " + filePath);
+        } catch (NumberFormatException e) {
+            System.out.println("Error parsing angka. Pastikan format file benar.");
+        }
+    }
+
     public static void main(String[] args) {
         Board board = new Board();
         board.readInputFromFile();

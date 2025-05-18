@@ -131,6 +131,19 @@ public class GBFS {
         return false;
     }
 
+    public Result mainGBFS(Board board5, int mode){
+        State root = new State(board5);
+        GBFS gbfsAlgo = new GBFS();
+        int[] counter = new int[1];
+
+        long startTime = System.nanoTime();
+        gbfsAlgo.runGBFS(root, mode, counter);  
+        long endTime = System.nanoTime();
+
+        double durationMs = (endTime - startTime) / 1_000_000.0;
+        return new Result(durationMs, counter[0], gbfsAlgo.getFinalPath());
+    }
+
     public static  void main(String[] args) {
         // Heuristik 1 (Penghalang saja)
         // Menghitung jumlah kendaraan yang menghalangi primary piece ke goal.
