@@ -85,7 +85,7 @@ public class GBFS {
         }
     }
 
-    public void runGBFS(State root, int mode) {
+    public void runGBFS(State root, int mode, int[] counter) {
         PrioQueue queue = new PrioQueue(100);
         root.setTotalCost(countHeuristic(root.getCurrBoard(), mode));
         queue.enqueue(root);
@@ -95,6 +95,7 @@ public class GBFS {
 
             if (visited.contains(current.getCurrBoard())) continue;
             addToVisited(current.getCurrBoard());
+            counter[0]+=1;
 
             if (isGoalState(current)) {
                 buildPath(current); 
@@ -147,8 +148,11 @@ public class GBFS {
         State root = new State(board);
         GBFS gbfsAlgo = new GBFS();
         int mode = 3;
-        gbfsAlgo.runGBFS(root, mode);
+        int[] counter = new int[1];
 
+        long startTime = System.nanoTime();
+        gbfsAlgo.runGBFS(root, mode, counter);  
+        long endTime = System.nanoTime();
 
 
         for(Board e : gbfsAlgo.getFinalPath()){
@@ -156,6 +160,9 @@ public class GBFS {
             e.printBoard();
             System.err.println();
         }
+        double durationMs = (endTime - startTime) / 1_000_000.0;
+        System.out.println("Waktu eksekusi: " + durationMs + " ms");
+        System.out.println("Banyak node: " + counter[0]);
     }
 
 
