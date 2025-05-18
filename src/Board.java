@@ -107,7 +107,7 @@ public class Board {
             char ch = line.charAt(col);
 
             if (ch != ' ' && ch != '.') {
-                pieceCoordinates.computeIfAbsent(ch, _ -> new ArrayList<>()).add(new int[]{row, col});
+                pieceCoordinates.computeIfAbsent(ch, k -> new ArrayList<>()).add(new int[]{row, col});
                 if (ch == EXIT) {
                     exitPos = new int[]{row, col};
                 }
@@ -234,7 +234,7 @@ public class Board {
         return pivot;
     }
 
-    private String determineDirection(List<int[]> coords) {
+    public String determineDirection(List<int[]> coords) {
         if (coords.size() == 1) {
             return "horizontal"; // Default for single pieces
         }

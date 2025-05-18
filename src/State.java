@@ -11,6 +11,15 @@ public class State {
     private int totalCost;
     private int countSteps;
 
+    public State(Board currBoard) {
+        this.prevState = null;
+        this.currBoard = currBoard;
+        this.moveDirection = "";
+        this.movedPiece = ' ';
+        this.totalCost = 0;
+        this.countSteps = 0;
+    }
+
     public State(State prevState, Board currBoard, String moveDirection, char movedPiece, int countSteps) {
         this.prevState = prevState;
         this.currBoard = currBoard;
