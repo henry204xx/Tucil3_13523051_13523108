@@ -23,31 +23,25 @@ public class GBFS {
         return visited.contains(b);
     }
 
-    public int countHeuristic(Board b){ 
-        //TO DO : IMPLEMENTASI ALGORITMA MENGHITUNG BANYAK KENDARAAN YANG BISA BERGERAK
-
-
-        // Algoritma menghitung berapa banyak kendaraan yang menghalangi jalan keluar primary piece
+    public int countHeuristic(Board b, int mode) {
         List<int[]> pos = b.getPrimaryPiecePosition();
         int[] exitPos = b.getExitPos();
         char[][] currBoard = b.generateGrid();
 
-        // Mencari koordinat piece yang paling dekat dengan pintu keluar
-        int closest[] = pos.get(0);
-        int minimalDistance = 999999;
-        for(int[] piecePos : pos){
+        int[] closest = pos.get(0);
+        int minimalDistance = Integer.MAX_VALUE;
+
+        for (int[] piecePos : pos) {
             int dist = Math.abs(piecePos[0] - exitPos[0]) + Math.abs(piecePos[1] - exitPos[1]);
-        
             if (dist < minimalDistance) {
                 minimalDistance = dist;
                 closest = piecePos;
             }
         }
 
-        // Mencari jumlah piece yang menghalangi primary piece
-
         String orientation = b.determineDirection(pos); 
-        int count = 0;
+        int blockers = 0;
+        int distance = 0;
 
         if ("horizontal".equals(orientation)) {
             int row = closest[0];
@@ -55,33 +49,45 @@ public class GBFS {
             int endCol = exitPos[1];
             int step = (endCol > startCol) ? 1 : -1;
 
-            char currentChar = currBoard[row][startCol]; 
+            char currentChar = currBoard[row][startCol];
             for (int col = startCol + step; col != endCol + step; col += step) {
-                if (currBoard[row][col] != '.' && currBoard[row][col] != currentChar) {
-                    count++;
+                if (col >= 0 && col < currBoard[0].length) {
+                    if (currBoard[row][col] != '.' && currBoard[row][col] != currentChar) {
+                        blockers++;
+                    }
+                    distance++;
                 }
             }
-        } else if ("vertikal".equals(orientation)) {
+
+        } else if ("vertical".equals(orientation)) {
             int col = closest[1];
             int startRow = closest[0];
             int endRow = exitPos[0];
             int step = (endRow > startRow) ? 1 : -1;
 
-            char currentChar = currBoard[startRow][col]; 
-
+            char currentChar = currBoard[startRow][col];
             for (int row = startRow + step; row != endRow + step; row += step) {
-                if (currBoard[row][col] != '.' && currBoard[row][col] != currentChar) {
-                    count++;
+                if (row >= 0 && row < currBoard.length) {
+                    if (currBoard[row][col] != '.' && currBoard[row][col] != currentChar) {
+                        blockers++;
+                    }
+                    distance++;
                 }
             }
         }
 
-        return count;
+
+        switch (mode) {
+            case 1: return blockers;              
+            case 2: return distance;             
+            case 3: return blockers + distance;   
+            default: return blockers;            
+        }
     }
 
-    public void runGBFS(State root) {
+    public void runGBFS(State root, int mode) {
         PrioQueue queue = new PrioQueue(100);
-        root.setTotalCost(countHeuristic(root.getCurrBoard()));
+        root.setTotalCost(countHeuristic(root.getCurrBoard(), mode));
         queue.enqueue(root);
 
         while (!queue.isEmpty()) {
@@ -96,7 +102,7 @@ public class GBFS {
             }
 
             for (State succ : current.getSuccessors()) {
-                succ.setTotalCost(countHeuristic(succ.getCurrBoard()));
+                succ.setTotalCost(countHeuristic(succ.getCurrBoard(),mode));
                 queue.enqueue(succ);
             }
         }
@@ -125,12 +131,24 @@ public class GBFS {
     }
 
     public static  void main(String[] args) {
+        // Heuristik 1 (Penghalang saja)
+        // Menghitung jumlah kendaraan yang menghalangi primary piece ke goal.
+
+        // Heuristik 2 (Jarak saja)
+        // Menghitung jarak Manhattan primary piece ke goal.
+
+        // Heuristik 3 (Gabungan)
+        // Menggabungkan penghalang + jarak sebagai penilaian total cost.
+
+
         Board board = new Board();
         board.readInputFromFile();
         board.printBoard();
         State root = new State(board);
         GBFS gbfsAlgo = new GBFS();
-        gbfsAlgo.runGBFS(root);
+        int mode = 3;
+        gbfsAlgo.runGBFS(root, mode);
+
 
 
         for(Board e : gbfsAlgo.getFinalPath()){
