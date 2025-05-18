@@ -4,15 +4,15 @@ import java.util.List;
 import java.util.Map;
 
 public class State {
-    private Board prevBoard;
+    private State prevState;
     private Board currBoard;
     private String moveDirection;  // "Up", "Down", "Left", "Right"
     private char movedPiece;       // 'A', 'B', etc.
     private int totalCost;
-    private int countSteps;     
+    private int countSteps;
 
-    public State(Board prevBoard, Board currBoard, String moveDirection, char movedPiece, int countSteps) {
-        this.prevBoard = prevBoard;
+    public State(State prevState, Board currBoard, String moveDirection, char movedPiece, int countSteps) {
+        this.prevState = prevState;
         this.currBoard = currBoard;
         this.moveDirection = moveDirection;
         this.movedPiece = movedPiece;
@@ -20,12 +20,12 @@ public class State {
         this.countSteps = countSteps;
     }
 
-    public Board getPrevBoard() {
-        return prevBoard;
+    public State getPrevState() {
+        return prevState;
     }
 
-    public void setPrevBoard(Board prevBoard) {
-        this.prevBoard = prevBoard;
+    public void setPrevState(State prevState) {
+        this.prevState = prevState;
     }
 
     public Board getCurrBoard() {
@@ -112,7 +112,7 @@ public class State {
                     Board newBoard = currentBoard.movePiece(pieceSymbol, direction);
                     if (newBoard != null) {
                         State newState = new State(
-                            currentBoard,
+                            this,                    // prevState
                             newBoard,
                             direction,
                             pieceSymbol,
@@ -125,6 +125,4 @@ public class State {
         }
         return successors;
     }
-
-
 }
