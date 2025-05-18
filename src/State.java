@@ -84,8 +84,8 @@ public class State {
         return false;
     }
 
-    private List<State> getSuccessors(State state) {
-        Board currentBoard = state.getCurrBoard();
+    public List<State> getSuccessors() {
+        Board currentBoard = this.currBoard;
         if (currentBoard == null) return Collections.emptyList();
 
         Map<Character, Piece> pieces = currentBoard.getPieces();
@@ -96,11 +96,16 @@ public class State {
             Piece piece = entry.getValue();
             String pieceDirection = piece.getDirection();
 
-            String[] directionsToTry = switch (pieceDirection) {
-                case "horizontal" -> new String[]{"left", "right"};
-                case "vertical" -> new String[]{"up", "down"};
-                default -> new String[]{"up", "down", "left", "right"};
-            };
+            String[] directionsToTry;
+            if (pieceDirection == null) {
+                directionsToTry = new String[]{"up", "down", "left", "right"};
+            } else {
+                switch (pieceDirection.toLowerCase()) {
+                    case "horizontal" -> directionsToTry = new String[]{"left", "right"};
+                    case "vertical" -> directionsToTry = new String[]{"up", "down"};
+                    default -> directionsToTry = new String[]{"up", "down", "left", "right"};
+                }
+            }
 
             for (String direction : directionsToTry) {
                 if (currentBoard.canMovePiece(pieceSymbol, direction)) {
@@ -111,7 +116,7 @@ public class State {
                             newBoard,
                             direction,
                             pieceSymbol,
-                            state.getCountSteps() + 1
+                            this.countSteps + 1
                         );
                         successors.add(newState);
                     }
@@ -120,5 +125,6 @@ public class State {
         }
         return successors;
     }
+
 
 }

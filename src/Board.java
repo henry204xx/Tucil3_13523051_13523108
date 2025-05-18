@@ -72,7 +72,7 @@ public class Board {
                 }
 
                 // Verify that the number of pieces matches the specified value
-               if ((pieces.size() - 1) != numPieces) {
+                if ((pieces.size() - 1) != numPieces) {
                     System.out.println("Warning: Jumlah kendaraan dalam file (" + 
                         (pieces.size() - 1) + 
                         ") tidak sesuai dengan yang dinyatakan (" + numPieces + ")");
@@ -93,7 +93,6 @@ public class Board {
     }
 
     private boolean processLine(String line, int row, Map<Character, List<int[]>> pieceCoordinates) {
-      
         if (row > rows) {
             System.out.println("Error: Jumlah baris dalam file melebihi batas (" + (rows + 1) + ").");
             return false;
@@ -108,7 +107,7 @@ public class Board {
             char ch = line.charAt(col);
 
             if (ch != ' ' && ch != '.') {
-                pieceCoordinates.computeIfAbsent(ch, k -> new ArrayList<>()).add(new int[]{row, col});
+                pieceCoordinates.computeIfAbsent(ch, _ -> new ArrayList<>()).add(new int[]{row, col});
                 if (ch == EXIT) {
                     exitPos = new int[]{row, col};
                 }
@@ -179,7 +178,6 @@ public class Board {
         }
     }
 
-
     private boolean validateNormalizedCoordinates(Map<Character, List<int[]>> pieceCoordinates) {
         for (Map.Entry<Character, List<int[]>> entry : pieceCoordinates.entrySet()) {
             char piece = entry.getKey();
@@ -204,15 +202,41 @@ public class Board {
 
             List<int[]> positions = entry.getValue();
             String direction = determineDirection(positions);
-
-            Piece piece = new Piece(symbol, direction, positions);
+            
+            // Find the length and pivot (smallest coordinate)
+            int length = positions.size();
+            int[] pivot = findPivot(positions, direction);
+            
+            Piece piece = new Piece(symbol, direction, pivot, length);
             pieces.put(symbol, piece);
         }
     }
 
+    private int[] findPivot(List<int[]> positions, String direction) {
+        if (positions.isEmpty()) {
+            return new int[]{0, 0};
+        }
+        
+        int[] pivot = positions.get(0).clone();
+        
+        for (int[] pos : positions) {
+            if (direction.equals("horizontal")) {
+                if (pos[1] < pivot[1]) {
+                    pivot = pos.clone();
+                }
+            } else { // vertical
+                if (pos[0] < pivot[0]) {
+                    pivot = pos.clone();
+                }
+            }
+        }
+        
+        return pivot;
+    }
+
     private String determineDirection(List<int[]> coords) {
         if (coords.size() == 1) {
-            return "horizontal";
+            return "horizontal"; // Default for single pieces
         }
 
         boolean allSameRow = true;
@@ -258,7 +282,8 @@ public class Board {
 
         // Place pieces on the grid
         for (Piece piece : pieces.values()) {
-            for (int[] pos : piece.getPositions()) {
+            List<int[]> positions = piece.getPositions();
+            for (int[] pos : positions) {
                 int r = pos[0];
                 int c = pos[1];
                 if (r >= 0 && r < rows && c >= 0 && c < columns) {
@@ -283,8 +308,12 @@ public class Board {
     public void printPieces() {
         System.out.println("\nDaftar Piece, Koordinat, dan Arah:");
         for (Piece piece : pieces.values()) {
-            System.out.print(piece.getSymbol() + " - Direction: " + piece.getDirection() + ": ");
-            for (int[] coord : piece.getPositions()) {
+            System.out.print(piece.getSymbol() + " - Direction: " + piece.getDirection() + 
+                    ", Pivot: [" + piece.getPivot()[0] + "," + piece.getPivot()[1] + 
+                    "], Length: " + piece.getLength() + ": ");
+            
+            List<int[]> positions = piece.getPositions();
+            for (int[] coord : positions) {
                 System.out.print("[" + coord[0] + "," + coord[1] + "] ");
             }
             System.out.println();
@@ -377,32 +406,40 @@ public class Board {
         
         // Copy all pieces except the one to be moved
         for (Map.Entry<Character, Piece> entry : this.pieces.entrySet()) {
-            if (entry.getKey() != symbol) {
-                Piece originalPiece = entry.getValue();
-                List<int[]> newPositions = new ArrayList<>();
-                for (int[] pos : originalPiece.getPositions()) {
-                    newPositions.add(new int[]{pos[0], pos[1]});
+            char pieceSymbol = entry.getKey();
+            Piece originalPiece = entry.getValue();
+            
+            if (pieceSymbol != symbol) {
+                // Deep copy of the piece
+                int[] newPivot = originalPiece.getPivot().clone();
+                Piece newPiece = new Piece(
+                    pieceSymbol, 
+                    originalPiece.getDirection(), 
+                    newPivot, 
+                    originalPiece.getLength()
+                );
+                newBoard.pieces.put(pieceSymbol, newPiece);
+            } else {
+                // Create a new piece with updated position
+                int[] newPivot = originalPiece.getPivot().clone();
+                
+                // Update pivot based on direction
+                switch (direction.toLowerCase()) {
+                    case "up" -> newPivot[0] -= 1;
+                    case "down" -> newPivot[0] += 1;
+                    case "left" -> newPivot[1] -= 1;
+                    case "right" -> newPivot[1] += 1;
                 }
-                newBoard.pieces.put(entry.getKey(), new Piece(entry.getKey(), originalPiece.getDirection(), newPositions));
+                
+                Piece newPiece = new Piece(
+                    symbol, 
+                    originalPiece.getDirection(), 
+                    newPivot, 
+                    originalPiece.getLength()
+                );
+                newBoard.pieces.put(symbol, newPiece);
             }
         }
-        
-        // Create a new piece with updated positions
-        Piece originalPiece = this.pieces.get(symbol);
-        List<int[]> newPositions = new ArrayList<>();
-        for (int[] pos : originalPiece.getPositions()) {
-            int[] newPos;
-            switch (direction.toLowerCase()) {
-                case "up" -> newPos = new int[]{pos[0] - 1, pos[1]};
-                case "down" -> newPos = new int[]{pos[0] + 1, pos[1]};
-                case "left" -> newPos = new int[]{pos[0], pos[1] - 1};
-                case "right" -> newPos = new int[]{pos[0], pos[1] + 1};
-                default -> newPos = new int[]{pos[0], pos[1]};
-            }
-            newPositions.add(newPos);
-        }
-        
-        newBoard.pieces.put(symbol, new Piece(symbol, originalPiece.getDirection(), newPositions));
         
         return newBoard;
     }
