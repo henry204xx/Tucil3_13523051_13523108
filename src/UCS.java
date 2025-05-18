@@ -1,22 +1,13 @@
-
-public class GBFS extends Solver {
-
-    public GBFS() {
+public class UCS extends Solver{
+    public UCS() {
         super();
     }
 
     @Override
-    protected void solve(State root, int[] counter, int mode) {
-        Heuristic heuristic;
-        switch (mode) {
-            case 1 -> heuristic = new BlockerOnly();
-            case 2 -> heuristic = new ManhattanDistance();
-            case 3 -> heuristic = new CombinedHeuristic();
-            default -> throw new IllegalArgumentException("Invalid mode: " + mode);
-        }
-
+    protected void solve(State root, int[] counter, int modeIngnored) {
+        
         PrioQueue queue = new PrioQueue(100);
-        root.setTotalCost(heuristic.calculate(root));
+        root.setTotalCost(root.getCountSteps());
         queue.enqueue(root);
 
         while (!queue.isEmpty()) {
@@ -33,7 +24,7 @@ public class GBFS extends Solver {
             }
 
             for (State succ : current.getSuccessors()) {
-                succ.setTotalCost(heuristic.calculate(succ));
+                succ.setTotalCost(succ.getCountSteps());
                 queue.enqueue(succ);
             }
         }
@@ -44,10 +35,9 @@ public class GBFS extends Solver {
         board.readInputFromFile();
         board.printBoard();
 
-        int mode = 2;
-
-        GBFS gbfsAlgo = new GBFS();
-        Result result = gbfsAlgo.run(board, mode);
+        UCS ucsAlgo = new UCS();
+        Result result = ucsAlgo.run(board, -1); 
+        System.out.println("Length of path: " + result.solutionStep.size());
 
         for (Board e : result.solutionStep) {
             System.err.println();

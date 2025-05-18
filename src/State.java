@@ -93,6 +93,19 @@ public class State {
         return false;
     }
 
+    public State removePrimaryPieceState() {
+    Board newBoard = this.currBoard.removePrimaryPiece(); // Your existing method
+        return new State(
+            this,
+            newBoard,     
+            this.moveDirection, 
+            this.movedPiece, 
+            this.countSteps    
+        );
+}
+
+
+
     public List<State> getSuccessors() {
         Board currentBoard = this.currBoard;
         if (currentBoard == null) return Collections.emptyList();

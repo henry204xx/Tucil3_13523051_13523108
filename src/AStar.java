@@ -1,7 +1,5 @@
-
-public class GBFS extends Solver {
-
-    public GBFS() {
+public class AStar extends Solver {
+    public AStar() {
         super();
     }
 
@@ -16,7 +14,7 @@ public class GBFS extends Solver {
         }
 
         PrioQueue queue = new PrioQueue(100);
-        root.setTotalCost(heuristic.calculate(root));
+        root.setTotalCost(heuristic.calculate(root) + root.getCountSteps());
         queue.enqueue(root);
 
         while (!queue.isEmpty()) {
@@ -33,7 +31,7 @@ public class GBFS extends Solver {
             }
 
             for (State succ : current.getSuccessors()) {
-                succ.setTotalCost(heuristic.calculate(succ));
+                succ.setTotalCost(heuristic.calculate(succ) + succ.getCountSteps());
                 queue.enqueue(succ);
             }
         }
@@ -44,10 +42,10 @@ public class GBFS extends Solver {
         board.readInputFromFile();
         board.printBoard();
 
-        int mode = 2;
+        int mode = 3;
 
-        GBFS gbfsAlgo = new GBFS();
-        Result result = gbfsAlgo.run(board, mode);
+        AStar aStarAlgo = new AStar();
+        Result result = aStarAlgo.run(board, mode);
 
         for (Board e : result.solutionStep) {
             System.err.println();

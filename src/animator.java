@@ -1,9 +1,9 @@
-import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.util.LinkedList;
+import javax.swing.*;
 
-public class animator extends JFrame {
+public class Animator extends JFrame {
     private int rows = 6;
     private int cols = 6;
     private Board curBoard;
@@ -56,7 +56,7 @@ public class animator extends JFrame {
 
     };
 
-    public animator() {
+    public Animator() {
         initializeUI();
     }
 
@@ -118,7 +118,7 @@ public class animator extends JFrame {
         controlPanel.setBackground(Color.WHITE);
         
         loadFileButton = createStyledButton("Load Puzzle", new Color(70, 130, 180));
-        loadFileButton.addActionListener(e -> loadPuzzleFile());
+        loadFileButton.addActionListener(_ -> loadPuzzleFile());
         
         algorithmSelector = new JComboBox<>(new String[]{"GBFS", "UCS", "A*"});
         algorithmSelector.setMaximumSize(new Dimension(200, 30));
@@ -134,11 +134,11 @@ public class animator extends JFrame {
 
     
         startButton = createStyledButton("Solve", new Color(34, 139, 34));
-        startButton.addActionListener(e -> solvePuzzle());
+        startButton.addActionListener(_ -> solvePuzzle());
         
         replayButton = createStyledButton("Replay Solution", new Color(138, 43, 226));
         replayButton.setEnabled(false);
-        replayButton.addActionListener(e -> replaySolution());
+        replayButton.addActionListener(_ -> replaySolution());
         
         controlPanel.add(loadFileButton);
         controlPanel.add(Box.createRigidArea(new Dimension(0, 40)));
@@ -209,19 +209,17 @@ public class animator extends JFrame {
         
         String heuristic = (String) heuristicSelector.getSelectedItem();
         int mode = 1;
-        if(heuristic.equals("Heuristic 1 - Blocking Vehicles")){
-            mode = 1;
-        } 
-        else if(heuristic.equals("Heuristic 2 - Manhattan Distance")){
-            mode = 2;
-        }
-        else if(heuristic.equals("Heuristic 3 - Combined")){
-            mode = 3;
+        switch (heuristic) {
+            case "Heuristic 1 - Blocking Vehicles" -> mode = 1;
+            case "Heuristic 2 - Manhattan Distance" -> mode = 2;
+            case "Heuristic 3 - Combined" -> mode = 3;
+            default -> {
+            }
         }
         
         if(algorithm.equals("GBFS")){
             GBFS g = new GBFS();
-            Result res = g.mainGBFS(curBoard, mode);
+            Result res = g.run(this.curBoard, mode);
             this.solutionSteps = res.solutionStep;
             this.countNode = res.nodes;
             this.execTime = res.time;
@@ -229,6 +227,7 @@ public class animator extends JFrame {
             resetBoard(this.rows, this.cols);
 
         }
+        
         // TODO: Algoritma lainnya
                 
         SwingUtilities.invokeLater(() -> {
@@ -248,7 +247,7 @@ public class animator extends JFrame {
         }
         currentStep = 0;
         //Ubah delay kalo kelambatan
-        animationTimer = new Timer(500, e -> {
+        animationTimer = new Timer(500, _ -> {
             if (currentStep < solutionSteps.size()) {
                 updateBoard(solutionSteps.get(currentStep));
                 currentStep++;
@@ -298,7 +297,7 @@ public class animator extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
-                new animator();
+                new Animator();
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -472,6 +472,31 @@ public class Board {
         return Collections.emptyList();
     }
 
+    public Board removePrimaryPiece() {
+        Board newBoard = new Board();
+        newBoard.rows = this.rows;
+        newBoard.columns = this.columns;
+        newBoard.numPieces = this.numPieces - 1;
+        newBoard.exitPos = this.exitPos != null ? new int[]{this.exitPos[0], this.exitPos[1]} : null;
+
+        for (Map.Entry<Character, Piece> entry : this.pieces.entrySet()) {
+            char pieceSymbol = entry.getKey();
+            if (pieceSymbol != PRIMARY_PIECE) {
+                Piece originalPiece = entry.getValue();
+                int[] newPivot = originalPiece.getPivot().clone();
+                Piece newPiece = new Piece(
+                    pieceSymbol, 
+                    originalPiece.getDirection(), 
+                    newPivot, 
+                    originalPiece.getLength()
+                );
+                newBoard.pieces.put(pieceSymbol, newPiece);
+            }
+        }
+
+        return newBoard;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
