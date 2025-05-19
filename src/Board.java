@@ -533,13 +533,13 @@ public class Board {
             }
 
             if (!fileScanner.hasNextLine()) {
-                throw new IllegalArgumentException("Error: Baris kedua harus ada untuk menyatakan jumlah kendaraan.");
+                throw new IllegalArgumentException("Error: Jumlah kendaraan tidak ada atau tidak sesuai format.");
             }
 
             try {
                 numPieces = Integer.parseInt(fileScanner.nextLine().trim());
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Error: Jumlah kendaraan harus berupa bilangan bulat.");
+                throw new IllegalArgumentException("Error: Jumlah kendaraan tidak ada atau tidak sesuai format.");
             }
 
             Map<Character, List<int[]>> pieceCoordinates = new HashMap<>();
@@ -552,7 +552,7 @@ public class Board {
                     if (!validLine) {
                         throw new IllegalArgumentException("Error: Format baris ke-" + currentRow + " tidak valid.");
                     }
-                } catch (Exception e) {
+                } catch (IllegalArgumentException e) {
                     throw new IllegalArgumentException("Error saat memproses baris ke-" + currentRow + ": " + e.getMessage());
                 }
                 currentRow++;
@@ -562,28 +562,28 @@ public class Board {
                 if (!verifyBoardConstraints(pieceCoordinates)) {
                     throw new IllegalArgumentException("Papan tidak sesuai format. Periksa file input.");
                 }
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Error saat memverifikasi papan.");
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Papan tidak sesuai format. Periksa file input.");
             }
 
             try {
                 normalizeCoordinates(pieceCoordinates);
             } catch (Exception e) {
-                throw new IllegalArgumentException("Papan tidak sesuai format saat normalisasi.");
+                throw new IllegalArgumentException("Error: Posisi piece di luar board.");
             }
 
             try {
                 if (!validateNormalizedCoordinates(pieceCoordinates)) {
-                    throw new IllegalArgumentException("Error: Papan melebihi dimensi yang ditulis.");
+                    throw new IllegalArgumentException("Error: Posisi piece di luar board.");
                 }
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Error: Papan tidak sesuai format saat validasi koordinat.");
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Error: Posisi piece di luar board.");
             }
 
             try {
                 createPieces(pieceCoordinates);
             } catch (Exception e) {
-                throw new IllegalArgumentException("Error saat membuat pieces: " + e.getMessage());
+                throw new IllegalArgumentException("Error saat membuat pieces");
             }
 
             if ((pieces.size() - 1) != numPieces) {
@@ -598,7 +598,7 @@ public class Board {
         } catch (FileNotFoundException e) {
             throw new FileNotFoundException("File tidak ditemukan: " + filePath);
         } catch (Exception e) {
-            throw new IllegalArgumentException("Terjadi kesalahan saat membaca file: " + e.getMessage());
+            throw new IllegalArgumentException(e.getMessage());
         }
     }
 
