@@ -145,6 +145,7 @@ public class Animator extends JFrame {
         replaySpeed.setAlignmentX(Component.CENTER_ALIGNMENT);
     
         startButton = createStyledButton("Solve", new Color(34, 139, 34));
+        startButton.setEnabled(false);
         startButton.addActionListener(k -> solvePuzzle());
         
         replayButton = createStyledButton("Replay Solution", new Color(138, 43, 226));
@@ -205,6 +206,8 @@ public class Animator extends JFrame {
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             String filePath = selectedFile.getAbsolutePath();
+            startButton.setEnabled(false);
+            replayButton.setEnabled(false);
             try {
                 this.curBoard = new Board();
                 this.curBoard.readInputFromFileGUI(filePath);
@@ -213,21 +216,30 @@ public class Animator extends JFrame {
                 this.cols = curBoard.getColumns();
 
                 resetBoard(this.rows, this.cols);
+                updateBoard(this.curBoard);
                 System.out.println("File path: " + filePath); 
                 resultLabel.setText("Puzzle loaded!");
                 replayButton.setEnabled(false);
+                startButton.setEnabled(true);
             } catch (FileNotFoundException e) {
                 JOptionPane.showMessageDialog(this,
                         "File tidak ditemukan:\n" + e.getMessage(),
                         "File Error",
                         JOptionPane.ERROR_MESSAGE);
+                remove(this.boardPanel);   
+                createBoardPanel(6, 6);
+                revalidate();
+                repaint();
             } catch (IllegalArgumentException e) {
                 JOptionPane.showMessageDialog(this,
                         "Gagal memuat file puzzle:\n" + e.getMessage(),
                         "Format Error",
                         JOptionPane.ERROR_MESSAGE);
+                remove(this.boardPanel);            
+                createBoardPanel(6, 6);
+                revalidate();
+                repaint();
             }
-
         }
     }
 
@@ -252,7 +264,6 @@ public class Animator extends JFrame {
             this.countNode = res.nodes;
             this.execTime = res.time;
             // this.curBoard = solutionSteps.getLast();
-            resetBoard(this.rows, this.cols);
             replaySolution();
         }
         else if(algorithm.equals("A*")){
@@ -261,7 +272,6 @@ public class Animator extends JFrame {
             this.solutionSteps = result.solutionStep;
             this.countNode = result.nodes;
             this.execTime = result.time;
-            resetBoard(this.rows, this.cols);
             replaySolution();
         }
         else if(algorithm.equals("UCS")){
@@ -270,7 +280,6 @@ public class Animator extends JFrame {
             this.solutionSteps = result.solutionStep;
             this.countNode = result.nodes;
             this.execTime = result.time;
-            resetBoard(this.rows, this.cols);
             replaySolution(); 
         }
         else if(algorithm.equals("IDS")){
@@ -279,7 +288,6 @@ public class Animator extends JFrame {
             this.solutionSteps = result.solutionStep;
             this.countNode = result.nodes;
             this.execTime = result.time;
-            resetBoard(this.rows, this.cols);
             replaySolution(); 
         }
         
@@ -342,7 +350,6 @@ public class Animator extends JFrame {
             remove(boardPanel);
         }        
         createBoardPanel(newRows, newCols);
-        updateBoard(this.curBoard);
 
         revalidate();
         repaint();
