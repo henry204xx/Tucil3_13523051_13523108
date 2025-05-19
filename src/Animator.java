@@ -118,7 +118,7 @@ public class Animator extends JFrame {
         controlPanel.setBackground(Color.WHITE);
         
         loadFileButton = createStyledButton("Load Puzzle", new Color(70, 130, 180));
-        loadFileButton.addActionListener(_ -> loadPuzzleFile());
+        loadFileButton.addActionListener(k -> loadPuzzleFile());
         
         algorithmSelector = new JComboBox<>(new String[]{"GBFS", "UCS", "A*"});
         algorithmSelector.setMaximumSize(new Dimension(200, 30));
@@ -134,11 +134,11 @@ public class Animator extends JFrame {
 
     
         startButton = createStyledButton("Solve", new Color(34, 139, 34));
-        startButton.addActionListener(_ -> solvePuzzle());
+        startButton.addActionListener(k -> solvePuzzle());
         
         replayButton = createStyledButton("Replay Solution", new Color(138, 43, 226));
         replayButton.setEnabled(false);
-        replayButton.addActionListener(_ -> replaySolution());
+        replayButton.addActionListener(k -> replaySolution());
         
         controlPanel.add(loadFileButton);
         controlPanel.add(Box.createRigidArea(new Dimension(0, 40)));
@@ -247,7 +247,7 @@ public class Animator extends JFrame {
         }
         currentStep = 0;
         //Ubah delay kalo kelambatan
-        animationTimer = new Timer(500, _ -> {
+        animationTimer = new Timer(500, k -> {
             if (currentStep < solutionSteps.size()) {
                 updateBoard(solutionSteps.get(currentStep));
                 currentStep++;
