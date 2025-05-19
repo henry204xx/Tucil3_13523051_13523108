@@ -16,7 +16,7 @@ public class Board {
         // Empty constructor
     }
 
-    public void readInputFromFile() {
+    public boolean readInputFromFile() {
         try (Scanner inputScanner = new Scanner(System.in)) {
             System.out.print("Masukkan nama file: ");
             String filePath = "../test/" + inputScanner.nextLine().trim();
@@ -25,13 +25,13 @@ public class Board {
                 try (Scanner fileScanner = new Scanner(new File(filePath))) {
                     if (!fileScanner.hasNextLine()) {
                         System.out.println("Error: File kosong atau tidak valid.");
-                        return;
+                        return false;
                     }
 
                     String[] dimensions = fileScanner.nextLine().split(" ");
                     if (dimensions.length != 2) {
-                        System.out.println("Error: Baris pertama harus terdiri dari 2 bilangan bulat (A B).");
-                        return;
+                        System.out.println("Error: Baris pertama harus terdiri dari dimensi papan dalam bilangan bulat (A B).");
+                        return false;
                     }
 
                     rows = Integer.parseInt(dimensions[0]);
@@ -39,15 +39,13 @@ public class Board {
 
                     if (!fileScanner.hasNextLine()) {
                         System.out.println("Error: Baris kedua harus ada untuk menyatakan jumlah kendaraan.");
-                        return;
+                        return false;
                     }
 
                     numPieces = Integer.parseInt(fileScanner.nextLine().trim());
 
-                    // Store piece coordinates instead of creating a grid immediately
                     Map<Character, List<int[]>> pieceCoordinates = new HashMap<>();
 
-                    // Process each line of the file and extract piece coordinates
                     int currentRow = 0;
                     boolean validLine = true;
                     while (fileScanner.hasNextLine() && validLine) {
@@ -57,21 +55,20 @@ public class Board {
                     }
 
                     if (!verifyBoardConstraints(pieceCoordinates)) {
-                        System.out.println("Verifikasi papan gagal. Proses dihentikan.");
-                        return;
+                        System.out.println("Papan tidak sesuai. Periksa file input");
+                        return false;
                     }
 
                     normalizeCoordinates(pieceCoordinates);
 
                     if (!validateNormalizedCoordinates(pieceCoordinates)) {
-                        System.out.println("Error: Koordinat tidak valid setelah normalisasi.");
-                        return;
+                        System.out.println("Error: Papan melebihi dimensi yang ditulis.");
+                        return false;
                     }
 
                     createPieces(pieceCoordinates);
                 }
 
-                // Verify that the number of pieces matches the specified value
                 if ((pieces.size() - 1) != numPieces) {
                     System.out.println("Warning: Jumlah kendaraan dalam file (" + 
                         (pieces.size() - 1) + 
@@ -88,26 +85,33 @@ public class Board {
                 System.out.println("File tidak ditemukan.");
             } catch (NumberFormatException e) {
                 System.out.println("Error parsing angka. Pastikan format file benar.");
+            } catch (Exception e) {
+                // Catch all other unexpected exceptions
+                System.out.println("Terjadi kesalahan tak terduga: " + e.getMessage());
             }
+        } catch (Exception e) {
+            System.out.println("Terjadi kesalahan input dari pengguna: " + e.getMessage());
         }
-    }
+        return true; 
+}
+
 
     private boolean processLine(String line, int row, Map<Character, List<int[]>> pieceCoordinates) {
-        if (row > rows) {
-            System.out.println("Error: Jumlah baris dalam file melebihi batas (" + (rows + 1) + ").");
-            return false;
-        }
+        // if (row > rows) {
+        //     System.out.println("Error: Jumlah baris dalam file melebihi batas (" + (rows + 1) + ").");
+        //     return false;
+        // }
 
-        if (line.length() > columns + 1) {
-            System.out.println("Error: Panjang baris ke-" + row + " melebihi batas (" + (columns + 1) + ").");
-            return false;
-        }
+        // if (line.length() > columns + 1) {
+        //     System.out.println("Error: Panjang baris ke-" + row + " melebihi batas (" + (columns + 1) + ").");
+        //     return false;
+        // }
 
         for (int col = 0; col < line.length(); col++) {
             char ch = line.charAt(col);
 
             if (ch != ' ' && ch != '.') {
-                pieceCoordinates.computeIfAbsent(ch, k -> new ArrayList<>()).add(new int[]{row, col});
+                pieceCoordinates.computeIfAbsent(ch, _ -> new ArrayList<>()).add(new int[]{row, col});
                 if (ch == EXIT) {
                     exitPos = new int[]{row, col};
                 }
@@ -510,76 +514,101 @@ public class Board {
         return Arrays.deepHashCode(generateGrid());
     }
 
-    public void readInputFromFileGUI(String filePath) {
-        try {
-            try (Scanner fileScanner = new Scanner(new File(filePath))) {
-                if (!fileScanner.hasNextLine()) {
-                    System.out.println("Error: File kosong atau tidak valid.");
-                    return;
-                }
-
-                String[] dimensions = fileScanner.nextLine().split(" ");
-                if (dimensions.length != 2) {
-                    System.out.println("Error: Baris pertama harus terdiri dari 2 bilangan bulat (A B).");
-                    return;
-                }
-
-                rows = Integer.parseInt(dimensions[0]);
-                columns = Integer.parseInt(dimensions[1]);
-
-                if (!fileScanner.hasNextLine()) {
-                    System.out.println("Error: Baris kedua harus ada untuk menyatakan jumlah kendaraan.");
-                    return;
-                }
-
-                numPieces = Integer.parseInt(fileScanner.nextLine().trim());
-
-                // Store piece coordinates instead of creating a grid immediately
-                Map<Character, List<int[]>> pieceCoordinates = new HashMap<>();
-
-                // Process each line of the file and extract piece coordinates
-                int currentRow = 0;
-                boolean validLine = true;
-                while (fileScanner.hasNextLine() && validLine) {
-                    String line = fileScanner.nextLine();
-                    validLine = processLine(line, currentRow, pieceCoordinates);
-                    currentRow++;
-                }
-
-                if (!verifyBoardConstraints(pieceCoordinates)) {
-                    System.out.println("Verifikasi papan gagal. Proses dihentikan.");
-                    return;
-                }
-
-                normalizeCoordinates(pieceCoordinates);
-
-                if (!validateNormalizedCoordinates(pieceCoordinates)) {
-                    System.out.println("Error: Koordinat tidak valid setelah normalisasi.");
-                    return;
-                }
-
-                createPieces(pieceCoordinates);
+    public String readInputFromFileGUI(String filePath) {
+        try (Scanner fileScanner = new Scanner(new File(filePath))) {
+            if (!fileScanner.hasNextLine()) {
+                return "Error: File kosong atau tidak valid.";
             }
 
-            // Verify that the number of pieces matches the specified value
+            String[] dimensions = fileScanner.nextLine().split(" ");
+            if (dimensions.length != 2) {
+                return "Error: Baris pertama harus terdiri dari dimensi papan (A B).";
+            }
+
+            try {
+                rows = Integer.parseInt(dimensions[0]);
+                columns = Integer.parseInt(dimensions[1]);
+            } catch (NumberFormatException e) {
+                return "Error: Dimensi papan harus berupa bilangan bulat.";
+              
+            }
+
+            if (!fileScanner.hasNextLine()) {
+                return "Error: Baris kedua harus ada untuk menyatakan jumlah kendaraan.";
+            }
+
+            try {
+                numPieces = Integer.parseInt(fileScanner.nextLine().trim());
+            } catch (NumberFormatException e) {
+                return "Error: Jumlah kendaraan harus berupa bilangan bulat.";
+            }
+
+            // Store piece coordinates instead of creating a grid immediately
+            Map<Character, List<int[]>> pieceCoordinates = new HashMap<>();
+
+            int currentRow = 0;
+            boolean validLine = true;
+            while (fileScanner.hasNextLine() && validLine) {
+                String line = fileScanner.nextLine();
+                try {
+                    validLine = processLine(line, currentRow, pieceCoordinates);
+                } catch (Exception e) {
+                    return String.format("Error saat memproses baris ke-" + currentRow + ": ");
+                }
+                currentRow++;
+            }
+
+            try {
+                if (!verifyBoardConstraints(pieceCoordinates)) {
+                    return "Papan tidak sesuai format. Periksa file input.";
+                }
+            } catch (Exception e) {
+               return "Error saat memverifikasi papan";
+            }
+
+            try {
+                normalizeCoordinates(pieceCoordinates);
+            } catch (Exception e) {
+                return "Papan tidak sesuai format.";
+                
+            }
+
+            try {
+                if (!validateNormalizedCoordinates(pieceCoordinates)) {
+                    return "Error: Papan melebihi dimensi yang ditulis.";
+                }
+            } catch (Exception e) {
+                return "Error: Papan tidak sesuai format.";
+            
+            }
+
+            try {
+                createPieces(pieceCoordinates);
+            } catch (Exception e) {
+                return "Error saat membuat pieces";
+                
+            }
+
+            // Final check after everything is parsed and created
             if ((pieces.size() - 1) != numPieces) {
-                System.out.println("Warning: Jumlah kendaraan dalam file (" + 
-                    (pieces.size() - 1) + 
+                return ("Jumlah kendaraan dalam file (" +
+                    (pieces.size() - 1) +
                     ") tidak sesuai dengan yang dinyatakan (" + numPieces + ")");
             }
 
-            System.out.println("Input berhasil diproses.");
-            if (exitPos != null)
-                System.out.println("Posisi pintu keluar 'K': [" + exitPos[0] + "," + exitPos[1] + "]");
-            else
-                System.out.println("Pintu keluar 'K' tidak ditemukan.");
+            if (exitPos == null)
+               return "Pintu keluar 'K' tidak ditemukan.";
+                
 
         } catch (FileNotFoundException e) {
-            System.out.println("File tidak ditemukan: " + filePath);
-        } catch (NumberFormatException e) {
-            System.out.println("Error parsing angka. Pastikan format file benar.");
+            return ("File tidak ditemukan: " + filePath);
+        } catch (Exception e) {
+           return ("Terjadi kesalahan");
         }
+
+        return "Success";
     }
+
 
     public static void main(String[] args) {
         Board board = new Board();

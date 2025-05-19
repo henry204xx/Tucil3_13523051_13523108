@@ -191,7 +191,21 @@ public class Animator extends JFrame {
             File selectedFile = fileChooser.getSelectedFile();
             String filePath = selectedFile.getAbsolutePath();
             this.curBoard = new Board();
-            this.curBoard.readInputFromFileGUI(filePath);
+            String errorMessage = this.curBoard.readInputFromFileGUI(filePath);
+            if (errorMessage.equals("Success")) {
+                // Success
+                this.rows = curBoard.getRows();
+                this.cols = curBoard.getColumns();
+                resetBoard(this.rows, this.cols);
+                resultLabel.setText("Puzzle loaded successfully!");
+                replayButton.setEnabled(false);
+            } else {
+                // Show the custom error
+                JOptionPane.showMessageDialog(this, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
+                resultLabel.setText("Error loading puzzle!");
+                
+            }
+
 
             this.rows = curBoard.getRows();
             this.cols = curBoard.getColumns();
