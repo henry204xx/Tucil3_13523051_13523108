@@ -223,12 +223,29 @@ public class Animator extends JFrame {
             this.solutionSteps = res.solutionStep;
             this.countNode = res.nodes;
             this.execTime = res.time;
-            this.curBoard = solutionSteps.getLast();
+            // this.curBoard = solutionSteps.getLast();
             resetBoard(this.rows, this.cols);
-
+            replaySolution();
+        }
+        else if(algorithm.equals("A*")){
+            AStar aStarAlgo = new AStar();
+            Result result = aStarAlgo.run(this.curBoard, mode);
+            this.solutionSteps = result.solutionStep;
+            this.countNode = result.nodes;
+            this.execTime = result.time;
+            resetBoard(this.rows, this.cols);
+            replaySolution();
+        }
+        else if(algorithm.equals("UCS")){
+            UCS ucsAlgo = new UCS();
+            Result result = ucsAlgo.run(this.curBoard, -1);
+            this.solutionSteps = result.solutionStep;
+            this.countNode = result.nodes;
+            this.execTime = result.time;
+            resetBoard(this.rows, this.cols);
+            replaySolution(); 
         }
         
-        // TODO: Algoritma lainnya
                 
         SwingUtilities.invokeLater(() -> {
             resultLabel.setText("Solution found in "+solutionSteps.size()+" steps!");
