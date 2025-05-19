@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.LinkedList;
 import javax.swing.*;
 
@@ -8,6 +9,7 @@ public class Animator extends JFrame {
     private int cols = 6;
     private Board curBoard;
 
+    private JSlider speedSlider;
     private JPanel boardPanel;
     private JLabel[][] cellLabels;
     private JButton startButton, replayButton, loadFileButton;
@@ -120,7 +122,7 @@ public class Animator extends JFrame {
         loadFileButton = createStyledButton("Load Puzzle", new Color(70, 130, 180));
         loadFileButton.addActionListener(k -> loadPuzzleFile());
         
-        algorithmSelector = new JComboBox<>(new String[]{"GBFS", "UCS", "A*"});
+        algorithmSelector = new JComboBox<>(new String[]{"GBFS", "UCS", "A*", "IDS"});
         algorithmSelector.setMaximumSize(new Dimension(200, 30));
         algorithmSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -132,6 +134,15 @@ public class Animator extends JFrame {
         heuristicSelector.setMaximumSize(new Dimension(200, 30));
         heuristicSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        this.speedSlider = new JSlider(JSlider.HORIZONTAL, 50, 1000, 500); // min=50, max=1000, initial=500
+        speedSlider.setMajorTickSpacing(250);
+        speedSlider.setMinorTickSpacing(50);
+        speedSlider.setPaintTicks(true);
+        speedSlider.setPaintLabels(true);
+        speedSlider.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel replaySpeed = new JLabel("Animation Speed");
+        replaySpeed.setAlignmentX(Component.CENTER_ALIGNMENT);
     
         startButton = createStyledButton("Solve", new Color(34, 139, 34));
         startButton.addActionListener(k -> solvePuzzle());
@@ -149,6 +160,10 @@ public class Animator extends JFrame {
         controlPanel.add(startButton);
         controlPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         controlPanel.add(replayButton);
+        controlPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        controlPanel.add(replaySpeed);
+        controlPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        controlPanel.add(speedSlider);
 
         add(controlPanel, BorderLayout.EAST);
     }
@@ -190,30 +205,29 @@ public class Animator extends JFrame {
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             String filePath = selectedFile.getAbsolutePath();
-            this.curBoard = new Board();
-            String errorMessage = this.curBoard.readInputFromFileGUI(filePath);
-            if (errorMessage.equals("Success")) {
-                // Success
+            try {
+                this.curBoard = new Board();
+                this.curBoard.readInputFromFileGUI(filePath);
+
                 this.rows = curBoard.getRows();
                 this.cols = curBoard.getColumns();
+
                 resetBoard(this.rows, this.cols);
-                resultLabel.setText("Puzzle loaded successfully!");
+                System.out.println("File path: " + filePath); 
+                resultLabel.setText("Puzzle loaded!");
                 replayButton.setEnabled(false);
-            } else {
-                // Show the custom error
-                JOptionPane.showMessageDialog(this, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
-                resultLabel.setText("Error loading puzzle!");
-                
+            } catch (FileNotFoundException e) {
+                JOptionPane.showMessageDialog(this,
+                        "File tidak ditemukan:\n" + e.getMessage(),
+                        "File Error",
+                        JOptionPane.ERROR_MESSAGE);
+            } catch (IllegalArgumentException e) {
+                JOptionPane.showMessageDialog(this,
+                        "Gagal memuat file puzzle:\n" + e.getMessage(),
+                        "Format Error",
+                        JOptionPane.ERROR_MESSAGE);
             }
 
-
-            this.rows = curBoard.getRows();
-            this.cols = curBoard.getColumns();
-
-            resetBoard(this.rows, this.cols);
-            System.out.println("File path: " + filePath); 
-            resultLabel.setText("Puzzle loaded!");
-            replayButton.setEnabled(false);
         }
     }
 
@@ -259,6 +273,15 @@ public class Animator extends JFrame {
             resetBoard(this.rows, this.cols);
             replaySolution(); 
         }
+        else if(algorithm.equals("IDS")){
+            IDS idsAlgo = new IDS();
+            Result result = idsAlgo.run(this.curBoard);
+            this.solutionSteps = result.solutionStep;
+            this.countNode = result.nodes;
+            this.execTime = result.time;
+            resetBoard(this.rows, this.cols);
+            replaySolution(); 
+        }
         
                 
         SwingUtilities.invokeLater(() -> {
@@ -277,8 +300,9 @@ public class Animator extends JFrame {
             return;
         }
         currentStep = 0;
+        int delay = this.speedSlider.getValue();
         //Ubah delay kalo kelambatan
-        animationTimer = new Timer(500, k -> {
+        animationTimer = new Timer(delay, k -> {
             if (currentStep < solutionSteps.size()) {
                 updateBoard(solutionSteps.get(currentStep));
                 currentStep++;

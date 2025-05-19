@@ -111,7 +111,7 @@ public class Board {
             char ch = line.charAt(col);
 
             if (ch != ' ' && ch != '.') {
-                pieceCoordinates.computeIfAbsent(ch, _ -> new ArrayList<>()).add(new int[]{row, col});
+                pieceCoordinates.computeIfAbsent(ch, k -> new ArrayList<>()).add(new int[]{row, col});
                 if (ch == EXIT) {
                     exitPos = new int[]{row, col};
                 }
@@ -514,99 +514,92 @@ public class Board {
         return Arrays.deepHashCode(generateGrid());
     }
 
-    public String readInputFromFileGUI(String filePath) {
+    public void readInputFromFileGUI(String filePath) throws FileNotFoundException {
         try (Scanner fileScanner = new Scanner(new File(filePath))) {
             if (!fileScanner.hasNextLine()) {
-                return "Error: File kosong atau tidak valid.";
+                throw new IllegalArgumentException("Error: File kosong atau tidak valid.");
             }
 
             String[] dimensions = fileScanner.nextLine().split(" ");
             if (dimensions.length != 2) {
-                return "Error: Baris pertama harus terdiri dari dimensi papan (A B).";
+                throw new IllegalArgumentException("Error: Baris pertama harus terdiri dari dimensi papan (A B).");
             }
 
             try {
                 rows = Integer.parseInt(dimensions[0]);
                 columns = Integer.parseInt(dimensions[1]);
             } catch (NumberFormatException e) {
-                return "Error: Dimensi papan harus berupa bilangan bulat.";
-              
+                throw new IllegalArgumentException("Error: Dimensi papan harus berupa bilangan bulat.");
             }
 
             if (!fileScanner.hasNextLine()) {
-                return "Error: Baris kedua harus ada untuk menyatakan jumlah kendaraan.";
+                throw new IllegalArgumentException("Error: Baris kedua harus ada untuk menyatakan jumlah kendaraan.");
             }
 
             try {
                 numPieces = Integer.parseInt(fileScanner.nextLine().trim());
             } catch (NumberFormatException e) {
-                return "Error: Jumlah kendaraan harus berupa bilangan bulat.";
+                throw new IllegalArgumentException("Error: Jumlah kendaraan harus berupa bilangan bulat.");
             }
 
-            // Store piece coordinates instead of creating a grid immediately
             Map<Character, List<int[]>> pieceCoordinates = new HashMap<>();
-
             int currentRow = 0;
-            boolean validLine = true;
-            while (fileScanner.hasNextLine() && validLine) {
+
+            while (fileScanner.hasNextLine()) {
                 String line = fileScanner.nextLine();
                 try {
-                    validLine = processLine(line, currentRow, pieceCoordinates);
+                    boolean validLine = processLine(line, currentRow, pieceCoordinates);
+                    if (!validLine) {
+                        throw new IllegalArgumentException("Error: Format baris ke-" + currentRow + " tidak valid.");
+                    }
                 } catch (Exception e) {
-                    return String.format("Error saat memproses baris ke-" + currentRow + ": ");
+                    throw new IllegalArgumentException("Error saat memproses baris ke-" + currentRow + ": " + e.getMessage());
                 }
                 currentRow++;
             }
 
             try {
                 if (!verifyBoardConstraints(pieceCoordinates)) {
-                    return "Papan tidak sesuai format. Periksa file input.";
+                    throw new IllegalArgumentException("Papan tidak sesuai format. Periksa file input.");
                 }
             } catch (Exception e) {
-               return "Error saat memverifikasi papan";
+                throw new IllegalArgumentException("Error saat memverifikasi papan.");
             }
 
             try {
                 normalizeCoordinates(pieceCoordinates);
             } catch (Exception e) {
-                return "Papan tidak sesuai format.";
-                
+                throw new IllegalArgumentException("Papan tidak sesuai format saat normalisasi.");
             }
 
             try {
                 if (!validateNormalizedCoordinates(pieceCoordinates)) {
-                    return "Error: Papan melebihi dimensi yang ditulis.";
+                    throw new IllegalArgumentException("Error: Papan melebihi dimensi yang ditulis.");
                 }
             } catch (Exception e) {
-                return "Error: Papan tidak sesuai format.";
-            
+                throw new IllegalArgumentException("Error: Papan tidak sesuai format saat validasi koordinat.");
             }
 
             try {
                 createPieces(pieceCoordinates);
             } catch (Exception e) {
-                return "Error saat membuat pieces";
-                
+                throw new IllegalArgumentException("Error saat membuat pieces: " + e.getMessage());
             }
 
-            // Final check after everything is parsed and created
             if ((pieces.size() - 1) != numPieces) {
-                return ("Jumlah kendaraan dalam file (" +
-                    (pieces.size() - 1) +
-                    ") tidak sesuai dengan yang dinyatakan (" + numPieces + ")");
+                throw new IllegalArgumentException("Jumlah kendaraan dalam file (" +
+                    (pieces.size() - 1) + ") tidak sesuai dengan yang dinyatakan (" + numPieces + ")");
             }
 
-            if (exitPos == null)
-               return "Pintu keluar 'K' tidak ditemukan.";
-                
+            if (exitPos == null) {
+                throw new IllegalArgumentException("Pintu keluar 'K' tidak ditemukan.");
+            }
 
         } catch (FileNotFoundException e) {
-            return ("File tidak ditemukan: " + filePath);
+            throw new FileNotFoundException("File tidak ditemukan: " + filePath);
         } catch (Exception e) {
-           return ("Terjadi kesalahan");
+            throw new IllegalArgumentException("Terjadi kesalahan saat membaca file: " + e.getMessage());
         }
-
-        return "Success";
     }
 
 
