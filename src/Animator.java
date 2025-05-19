@@ -118,7 +118,7 @@ public class Animator extends JFrame {
         controlPanel.setBackground(Color.WHITE);
         
         loadFileButton = createStyledButton("Load Puzzle", new Color(70, 130, 180));
-        loadFileButton.addActionListener(_ -> loadPuzzleFile());
+        loadFileButton.addActionListener(k -> loadPuzzleFile());
         
         algorithmSelector = new JComboBox<>(new String[]{"GBFS", "UCS", "A*"});
         algorithmSelector.setMaximumSize(new Dimension(200, 30));
@@ -134,11 +134,11 @@ public class Animator extends JFrame {
 
     
         startButton = createStyledButton("Solve", new Color(34, 139, 34));
-        startButton.addActionListener(_ -> solvePuzzle());
+        startButton.addActionListener(k -> solvePuzzle());
         
         replayButton = createStyledButton("Replay Solution", new Color(138, 43, 226));
         replayButton.setEnabled(false);
-        replayButton.addActionListener(_ -> replaySolution());
+        replayButton.addActionListener(k -> replaySolution());
         
         controlPanel.add(loadFileButton);
         controlPanel.add(Box.createRigidArea(new Dimension(0, 40)));
@@ -237,12 +237,29 @@ public class Animator extends JFrame {
             this.solutionSteps = res.solutionStep;
             this.countNode = res.nodes;
             this.execTime = res.time;
-            this.curBoard = solutionSteps.getLast();
+            // this.curBoard = solutionSteps.getLast();
             resetBoard(this.rows, this.cols);
-
+            replaySolution();
+        }
+        else if(algorithm.equals("A*")){
+            AStar aStarAlgo = new AStar();
+            Result result = aStarAlgo.run(this.curBoard, mode);
+            this.solutionSteps = result.solutionStep;
+            this.countNode = result.nodes;
+            this.execTime = result.time;
+            resetBoard(this.rows, this.cols);
+            replaySolution();
+        }
+        else if(algorithm.equals("UCS")){
+            UCS ucsAlgo = new UCS();
+            Result result = ucsAlgo.run(this.curBoard, -1);
+            this.solutionSteps = result.solutionStep;
+            this.countNode = result.nodes;
+            this.execTime = result.time;
+            resetBoard(this.rows, this.cols);
+            replaySolution(); 
         }
         
-        // TODO: Algoritma lainnya
                 
         SwingUtilities.invokeLater(() -> {
             resultLabel.setText("Solution found in "+solutionSteps.size()+" steps!");
@@ -261,7 +278,7 @@ public class Animator extends JFrame {
         }
         currentStep = 0;
         //Ubah delay kalo kelambatan
-        animationTimer = new Timer(500, _ -> {
+        animationTimer = new Timer(500, k -> {
             if (currentStep < solutionSteps.size()) {
                 updateBoard(solutionSteps.get(currentStep));
                 currentStep++;
