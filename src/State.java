@@ -130,21 +130,27 @@ public class State {
             }
 
             for (String direction : directionsToTry) {
-                if (currentBoard.canMovePiece(pieceSymbol, direction)) {
-                    Board newBoard = currentBoard.movePiece(pieceSymbol, direction);
-                    if (newBoard != null) {
-                        State newState = new State(
-                            this,                    // prevState
-                            newBoard,
-                            direction,
-                            pieceSymbol,
-                            this.countSteps + 1
-                        );
-                        successors.add(newState);
-                    }
+                Board tempBoard = currentBoard;
+                while (tempBoard.canMovePiece(pieceSymbol, direction)) {
+                Board newBoard = tempBoard.movePiece(pieceSymbol, direction);
+                if (newBoard == null) {
+                    break; 
                 }
+                
+              
+                State newState = new State(
+                    this,           
+                    newBoard,
+                    direction,
+                    pieceSymbol,
+                    this.countSteps + 1
+                );
+                successors.add(newState);
+                
+                tempBoard = newBoard;
             }
         }
+    }
         return successors;
     }
 }
