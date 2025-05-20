@@ -363,7 +363,12 @@ public class Animator extends JFrame {
             if (numberofSteps > 1) {
                 numberofSteps -= 2; // remove initial and final state
             }
-            resultLabel.setText("Solution found in "+numberofSteps+" steps!");
+            if(this.solutionSteps.isEmpty()){
+                resultLabel.setText("No Solution found!");
+            }
+            else{
+                resultLabel.setText("Solution found in "+numberofSteps+" steps!");
+            }
             nodesLabel.setText("Nodes explored: " + this.countNode);
             timeLabel.setText("Time: "+this.execTime+" ms");
             replayButton.setEnabled(true);
