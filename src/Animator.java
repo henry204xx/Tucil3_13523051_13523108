@@ -22,7 +22,7 @@ public class Animator extends JFrame {
     private JLabel nodesLabel;
     private JLabel timeLabel;
     
-    private LinkedList<Board> solutionSteps;
+    private LinkedList<State> solutionSteps;
     private int currentStep = 0;
     private Timer animationTimer;
     private int countNode = 0;
@@ -326,7 +326,7 @@ public class Animator extends JFrame {
         //Ubah delay kalo kelambatan
         animationTimer = new Timer(delay, k -> {
             if (currentStep < solutionSteps.size()) {
-                updateBoard(solutionSteps.get(currentStep));
+                updateBoard(solutionSteps.get(currentStep).getCurrBoard());
                 currentStep++;
             } else {
                 animationTimer.stop();
