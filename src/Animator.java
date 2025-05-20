@@ -1,6 +1,8 @@
 import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.LinkedList;
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -15,6 +17,7 @@ public class Animator extends JFrame {
     private JPanel boardPanel;
     private JLabel[][] cellLabels;
     private JButton startButton, replayButton, loadFileButton;
+    private JButton saveButton;
     private JComboBox<String> algorithmSelector;
     private JLabel resultLabel;
     private JLabel titleLabel;
@@ -158,6 +161,10 @@ public class Animator extends JFrame {
         algorithmSelector = new JComboBox<>(new String[]{"GBFS", "UCS", "A*", "IDS"});
         algorithmSelector.setMaximumSize(new Dimension(200, 30));
         algorithmSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
+        algorithmSelector.addActionListener(e ->{
+            replayButton.setEnabled(false);
+            saveButton.setEnabled(false);}
+        );
 
         heuristicSelector = new JComboBox<>(new String[]{
             "Heuristic 1 - Blocking Vehicles",
@@ -166,6 +173,10 @@ public class Animator extends JFrame {
         });
         heuristicSelector.setMaximumSize(new Dimension(200, 30));
         heuristicSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
+        heuristicSelector.addActionListener(e ->{
+            replayButton.setEnabled(false);
+            saveButton.setEnabled(false);}
+        );
 
         this.speedSlider = new JSlider(JSlider.HORIZONTAL, 50, 1000, 500); // min=50, max=1000, initial=500
         speedSlider.setMajorTickSpacing(250);
@@ -180,6 +191,10 @@ public class Animator extends JFrame {
         startButton = createStyledButton("Solve", new Color(34, 139, 34));
         startButton.setEnabled(false);
         startButton.addActionListener(k -> solvePuzzle());
+
+        saveButton = createStyledButton("Save Solution", new Color(255, 140, 0));
+        saveButton.setEnabled(false); 
+        saveButton.addActionListener(e -> saveSolutionToFile());
         
         replayButton = createStyledButton("Replay Solution", new Color(138, 43, 226));
         replayButton.setEnabled(false);
@@ -198,6 +213,8 @@ public class Animator extends JFrame {
         controlPanel.add(replaySpeed);
         controlPanel.add(Box.createRigidArea(new Dimension(0, 5)));
         controlPanel.add(speedSlider);
+        controlPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        controlPanel.add(saveButton);
 
         add(controlPanel, BorderLayout.EAST);
     }
@@ -255,11 +272,13 @@ public class Animator extends JFrame {
                 resultLabel.setText("Puzzle loaded!");
                 replayButton.setEnabled(false);
                 startButton.setEnabled(true);
+                saveButton.setEnabled(false);
             } catch (FileNotFoundException e) {
                 JOptionPane.showMessageDialog(this,
                         "File tidak ditemukan:\n" + e.getMessage(),
                         "File Error",
                         JOptionPane.ERROR_MESSAGE);
+                saveButton.setEnabled(false);
                 this.exitPos = null;
                 remove(this.boardPanel);   
                 createBoardPanel(6, 6);
@@ -270,6 +289,7 @@ public class Animator extends JFrame {
                         "Gagal memuat file puzzle:\n" + e.getMessage(),
                         "Format Error",
                         JOptionPane.ERROR_MESSAGE);
+                saveButton.setEnabled(false);
                 this.exitPos = null;
                 remove(this.boardPanel);            
                 createBoardPanel(6, 6);
@@ -347,6 +367,7 @@ public class Animator extends JFrame {
             nodesLabel.setText("Nodes explored: " + this.countNode);
             timeLabel.setText("Time: "+this.execTime+" ms");
             replayButton.setEnabled(true);
+            saveButton.setEnabled(true);
             
         });
 
@@ -410,6 +431,68 @@ public class Animator extends JFrame {
         revalidate();
         repaint();
     }
+
+    private String getSolutionInString(){
+        String res = "";
+
+        for(int k = 0; k < this.solutionSteps.size(); k++){
+            State currState = this.solutionSteps.get(k);
+            Board b = currState.getCurrBoard();
+            if(k==0){
+                res+= "Kondisi awal papan \n";
+            }
+            else{
+                res= res + "Gerakan " + k + ": "+ currState.getMovedPiece() 
+                + "-" + currState.getMoveDirection() + "\n";
+            }
+            char[][] grid = b.generateGrid();
+            for (int i = 0; i < this.rows; i++) {
+                for (int j = 0; j < this.cols; j++) {
+                    res+=grid[i][j];
+                }
+                res+="\n";
+            }
+
+            res+="\n";
+        }
+       
+        return res;
+    }
+
+    private void saveSolutionToFile() {
+        if (solutionSteps.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No solution available to save.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String fileName = JOptionPane.showInputDialog(this, "Enter the filename (without extension):", "Save Solution", JOptionPane.PLAIN_MESSAGE);
+        if (fileName == null || fileName.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Filename cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (!fileName.toLowerCase().endsWith(".txt")) {
+            fileName += ".txt";
+        }
+
+        JFileChooser folderChooser = new JFileChooser();
+        folderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        int result = folderChooser.showSaveDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFolder = folderChooser.getSelectedFile();
+            File outputFile = new File(selectedFolder, fileName);
+
+            try (PrintWriter writer = new PrintWriter(outputFile)) {
+                writer.print(getSolutionInString());
+                JOptionPane.showMessageDialog(this, "Solution saved to " + outputFile.getAbsolutePath(), "Success", JOptionPane.INFORMATION_MESSAGE);
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(this, "Failed to save solution: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+
     
 
     public static void main(String[] args) {
