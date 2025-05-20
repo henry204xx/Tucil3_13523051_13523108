@@ -30,22 +30,22 @@ public class UCS extends Solver{
         }
     }
 
-    public static void main(String[] args) {
-        Board board = new Board();
-        board.readInputFromFile();
-        board.printBoard();
+    // public static void main(String[] args) {
+    //     Board board = new Board();
+    //     board.readInputFromFile();
+    //     board.printBoard();
 
-        UCS ucsAlgo = new UCS();
-        Result result = ucsAlgo.run(board, -1); 
-        System.out.println("Length of path: " + result.solutionStep.size());
+    //     UCS ucsAlgo = new UCS();
+    //     Result result = ucsAlgo.run(board, -1); 
+    //     System.out.println("Length of path: " + result.solutionStep.size());
 
-        for (Board e : result.solutionStep) {
-            System.err.println();
-            e.printBoard();
-            System.err.println();
-        }
+    //     for (Board e : result.solutionStep) {
+    //         System.err.println();
+    //         e.printBoard();
+    //         System.err.println();
+    //     }
 
-        System.out.println("Waktu eksekusi: " + result.time + " ms");
-        System.out.println("Banyak node: " + result.nodes);
-    }
+    //     System.out.println("Waktu eksekusi: " + result.time + " ms");
+    //     System.out.println("Banyak node: " + result.nodes);
+    // }
 }
