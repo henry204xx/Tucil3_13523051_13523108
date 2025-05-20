@@ -4,9 +4,9 @@ import java.util.Set;
 
 public abstract class Solver {
     protected Set<Board> visited = new HashSet<>();
-    protected LinkedList<Board> finalPath = new LinkedList<>();
+    protected LinkedList<State> finalPath = new LinkedList<>();
 
-    public LinkedList<Board> getFinalPath() {
+    public LinkedList<State> getFinalPath() {
         return finalPath;
     }
 
@@ -21,7 +21,7 @@ public abstract class Solver {
     protected void buildPath(State goal) {
         State current = goal;
         while (current != null) {
-            finalPath.addFirst(current.getCurrBoard());
+            finalPath.addFirst(current);
             current = current.getPrevState();
         }
     }
