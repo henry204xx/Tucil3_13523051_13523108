@@ -159,6 +159,33 @@ public class Board {
         return false;
     }
 
+    public String getExitDirection() {
+        int[] epos = exitPos; 
+        int[] ppos = pieces.get('P').getPivot(); 
+        String direction = pieces.get('P').getDirection();
+
+        if (direction.equals("horizontal")) {
+            if (epos[0] == ppos[0]) { 
+                if (epos[1] < ppos[1]) {
+                    return "LEFT";
+                } else if (epos[1] > ppos[1]) {
+                    return "RIGHT";
+                }
+            }
+        } else if (direction.equals("vertical")) {
+            if (epos[1] == ppos[1]) { 
+                if (epos[0] < ppos[0]) {
+                    return "UP";
+                } else if (epos[0] > ppos[0]) {
+                    return "DOWN";
+                }
+            }
+        }
+
+        return "UNKNOWN"; 
+    }
+
+
     public String getExitDirection(Map<Character, List<int[]>> pieceCoordinates) {
         List<int[]> kCoords = pieceCoordinates.get('K');
         if (kCoords == null || kCoords.isEmpty()) return "K not found";

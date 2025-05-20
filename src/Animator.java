@@ -3,11 +3,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.LinkedList;
 import javax.swing.*;
+import javax.swing.border.Border;
 
 public class Animator extends JFrame {
     private int rows = 6;
     private int cols = 6;
     private Board curBoard;
+    private int[] exitPos = null;
 
     private JSlider speedSlider;
     private JPanel boardPanel;
@@ -95,23 +97,54 @@ public class Animator extends JFrame {
         boardPanel = new JPanel(new GridLayout(rows, cols, 2, 2));
         boardPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         boardPanel.setBackground(Color.DARK_GRAY);
-        
+
         cellLabels = new JLabel[rows][cols];
-        
+
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 cellLabels[i][j] = new JLabel("", SwingConstants.CENTER);
                 cellLabels[i][j].setOpaque(true);
                 cellLabels[i][j].setBackground(Color.LIGHT_GRAY);
-                cellLabels[i][j].setBorder(BorderFactory.createLineBorder(Color.BLACK));
                 cellLabels[i][j].setPreferredSize(new Dimension(60, 60));
                 cellLabels[i][j].setFont(new Font("Arial", Font.BOLD, 16));
+
+                Border finalBorder;
+
+                if (exitPos != null && i == exitPos[0] && j == exitPos[1]) {
+                    String direction = (curBoard != null) ? curBoard.getExitDirection() : "UNKNOWN";
+                    Border normalBorder = BorderFactory.createLineBorder(Color.BLACK);
+                    Border exitMarker;
+
+                    switch (direction) {
+                        case "UP":
+                            exitMarker = BorderFactory.createMatteBorder(10, 0, 0, 0, Color.RED);
+                            break;
+                        case "DOWN":
+                            exitMarker = BorderFactory.createMatteBorder(0, 0, 10, 0, Color.RED);
+                            break;
+                        case "LEFT":
+                            exitMarker = BorderFactory.createMatteBorder(0, 10, 0, 0, Color.RED);
+                            break;
+                        case "RIGHT":
+                            exitMarker = BorderFactory.createMatteBorder(0, 0, 0, 10, Color.RED);
+                            break;
+                        default:
+                            exitMarker = BorderFactory.createEmptyBorder();
+                    }
+
+                    finalBorder = BorderFactory.createCompoundBorder(exitMarker, normalBorder);
+                } else {
+                    finalBorder = BorderFactory.createLineBorder(Color.BLACK);
+                }
+
+                cellLabels[i][j].setBorder(finalBorder);
                 boardPanel.add(cellLabels[i][j]);
             }
         }
-        
+
         add(boardPanel, BorderLayout.CENTER);
     }
+
 
     private void createControlPanel() {
         JPanel controlPanel = new JPanel();
@@ -214,6 +247,7 @@ public class Animator extends JFrame {
 
                 this.rows = curBoard.getRows();
                 this.cols = curBoard.getColumns();
+                this.exitPos = curBoard.getExitPos();
 
                 resetBoard(this.rows, this.cols);
                 updateBoard(this.curBoard);
@@ -226,6 +260,7 @@ public class Animator extends JFrame {
                         "File tidak ditemukan:\n" + e.getMessage(),
                         "File Error",
                         JOptionPane.ERROR_MESSAGE);
+                this.exitPos = null;
                 remove(this.boardPanel);   
                 createBoardPanel(6, 6);
                 revalidate();
@@ -235,6 +270,7 @@ public class Animator extends JFrame {
                         "Gagal memuat file puzzle:\n" + e.getMessage(),
                         "Format Error",
                         JOptionPane.ERROR_MESSAGE);
+                this.exitPos = null;
                 remove(this.boardPanel);            
                 createBoardPanel(6, 6);
                 revalidate();

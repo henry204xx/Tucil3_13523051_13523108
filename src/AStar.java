@@ -47,9 +47,9 @@ public class AStar extends Solver {
     //     AStar aStarAlgo = new AStar();
     //     Result result = aStarAlgo.run(board, mode);
 
-    //     for (Board e : result.solutionStep) {
+    //     for (State e : result.solutionStep) {
     //         System.err.println();
-    //         e.printBoard();
+    //         e.getCurrBoard().printBoard();
     //         System.err.println();
     //     }
 
