@@ -147,37 +147,102 @@ public class Board {
         return true;
     }
 
+    private boolean hasPieceAt(Map<Character, List<int[]>> pieceCoordinates, int targetRow, int targetCol) {
+        for (Map.Entry<Character, List<int[]>> entry : pieceCoordinates.entrySet()) {
+            if (entry.getKey() == 'K') continue; 
+            for (int[] coord : entry.getValue()) {
+                if (coord[0] == targetRow && coord[1] == targetCol) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public String getExitDirection(Map<Character, List<int[]>> pieceCoordinates) {
+        List<int[]> kCoords = pieceCoordinates.get('K');
+        if (kCoords == null || kCoords.isEmpty()) return "K not found";
+
+        for (int[] coord : kCoords) {
+            int r = coord[0];
+            int c = coord[1];
+
+            // (0,0)
+            if (r == 0 && c == 0) {
+                if (hasPieceAt(pieceCoordinates, 0, 1)) return "left";
+                else return "up";
+            }
+            // (0, 1 up to columns-1)
+            if (r == 0 && c > 0 && c < columns) {
+                return "up";
+            }
+
+            // (0, columns)
+            if (r == 0 && c == columns) {
+                return "right";
+               
+            }
+
+            if (c == 0 && r > 0 && r < rows) {
+                return "left";
+            }
+
+            // (rows, 0)
+            if (c == 0 && r == rows) {
+                return "bottom";
+            }
+
+            // (rows, 1 up to columns-1)
+            if (c > 0 && c < columns && r == rows) {
+                return "bottom";
+            }
+
+            // (rows-1, columns)
+            if (c == columns && r == rows - 1) {
+                return "right";
+            }
+        }
+
+        return "right";
+    }
+
+
     private void normalizeCoordinates(Map<Character, List<int[]>> pieceCoordinates) {
         if (exitPos == null) {
             System.out.println("Pintu keluar tidak ditemukan. Tidak bisa menormalisasi.");
             return;
         }
 
-        int exitRow = exitPos[0];
-        int exitCol = exitPos[1];
+        // int exitRow = exitPos[0];
+        // int exitCol = exitPos[1];
 
+        String exitDirection = getExitDirection(pieceCoordinates);
+      
         // Adjust all piece coordinates
         for (Map.Entry<Character, List<int[]>> entry : pieceCoordinates.entrySet()) {
             char piece = entry.getKey();
             if (piece == EXIT) continue;
 
-            List<int[]> coords = entry.getValue();
+            //coord[0] = row
+            //coord[1] = column
 
-            if (exitRow == 0) {
-                for (int[] coord : coords) {
-                    coord[0] -= 1;
-                }
-            } else if (exitCol == 0) {
+            List<int[]> coords = entry.getValue();
+            
+            if (exitDirection.equals("left")) { //left
                 for (int[] coord : coords) {
                     coord[1] -= 1;
+                }
+            } else if (exitDirection.equals("up")) { //up
+                for (int[] coord : coords) {
+                    coord[0] -= 1;
                 }
             }
         }
 
-        // Adjust exitPos ONCE, outside the loop
-        if (exitRow == rows) {
+        // Adjust exitPos once
+        if (exitDirection.equals("bottom")) { // bottom
             exitPos[0] -= 1;
-        } else if (exitCol == columns) {
+        } else if (exitDirection.equals("right")) { // right
             exitPos[1] -= 1;
         }
     }
@@ -564,6 +629,38 @@ public class Board {
                 }
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("Papan tidak sesuai format. Periksa file input.");
+            }
+
+            try {
+                String exitDirection = getExitDirection(pieceCoordinates);
+                String primaryDir = determineDirection(pieceCoordinates.get(PRIMARY_PIECE));
+                boolean match = (primaryDir.equals("vertical") && (exitDirection.equals("up") || exitDirection.equals("bottom")))
+                             || (primaryDir.equals("horizontal") && (exitDirection.equals("left") || exitDirection.equals("right")));
+                if (!match) {
+                    throw new IllegalArgumentException("Arah kendaraan utama 'P' (" +
+                        primaryDir +
+                        ") tidak sesuai dengan arah pintu keluar (" + exitDirection + ").");
+                }
+
+                // if horizontal, all 'P' must be on the same row as exit; if vertical, same column
+                List<int[]> primaryCoords = pieceCoordinates.get(PRIMARY_PIECE);
+                int[] exit = pieceCoordinates.get(EXIT).get(0);
+                if (primaryDir.equals("horizontal")) {
+                    for (int[] coord : primaryCoords) {
+                        if (coord[0] != exit[0]) {
+                            throw new IllegalArgumentException("Kendaraan utama 'P' harus berada pada baris yang sama dengan pintu keluar.");
+                        }
+                    }
+                } else if (primaryDir.equals("vertical")) {
+                    for (int[] coord : primaryCoords) {
+                        if (coord[1] != exit[1]) {
+                            throw new IllegalArgumentException("Kendaraan utama 'P' harus berada pada kolom yang sama dengan pintu keluar.");
+                        }
+                    }
+                }
+
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException(e.getMessage());
             }
 
             try {

@@ -8,11 +8,20 @@ public class IDS extends Solver {
     @Override
     protected void solve(State root, int[] counter, int mode) {
         int depthLimit = 0;
+        int prevVisitedSize = -1;
 
         while (true) {
-            visited.clear(); // Clear visited for each depth level
+            visited.clear();
             boolean found = depthLimitedSearch(root, depthLimit, counter);
-            if (found) break;
+            if (found) {
+                break;
+            }
+
+            if (visited.size() == prevVisitedSize) {
+                break;
+            }
+
+            prevVisitedSize = visited.size();
             depthLimit++;
         }
     }
@@ -36,13 +45,13 @@ public class IDS extends Solver {
 
             if (current.getCountSteps() < limit) {
                 for (State succ : current.getSuccessors()) {
-                    succ.setPrevState(current); 
+                    succ.setPrevState(current);
                     stack.push(succ);
                 }
             }
         }
 
-        return false; 
+        return false;
     }
 
     public static void main(String[] args) {

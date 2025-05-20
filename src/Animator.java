@@ -293,7 +293,11 @@ public class Animator extends JFrame {
         
                 
         SwingUtilities.invokeLater(() -> {
-            resultLabel.setText("Solution found in "+solutionSteps.size()+" steps!");
+            int numberofSteps = solutionSteps.size();
+            if (numberofSteps > 1) {
+                numberofSteps -= 2; // remove initial and final state
+            }
+            resultLabel.setText("Solution found in "+numberofSteps+" steps!");
             nodesLabel.setText("Nodes explored: " + this.countNode);
             timeLabel.setText("Time: "+this.execTime+" ms");
             replayButton.setEnabled(true);
@@ -324,6 +328,7 @@ public class Animator extends JFrame {
 
     private void updateBoard(Board boardInState) {
         char[][] grid = boardInState.generateGrid();
+        int[] exitPos = boardInState.getExitPos();
 
         for (int i = 0; i < this.rows; i++) {
             for (int j = 0; j < this.cols; j++) {
@@ -338,7 +343,12 @@ public class Animator extends JFrame {
                     cellLabels[i][j].setText(String.valueOf(cellValue));
                 } else {
                     cellLabels[i][j].setBackground(Color.LIGHT_GRAY);
-                    cellLabels[i][j].setText("");
+                    if (i == exitPos[0] && j == exitPos[1]) {
+                        cellLabels[i][j].setText("EXIT"); 
+                    }
+                    else {
+                        cellLabels[i][j].setText("");
+                    }
                 }
             }
         }
