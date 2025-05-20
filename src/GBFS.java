@@ -39,23 +39,23 @@ public class GBFS extends Solver {
         }
     }
 
-    public static void main(String[] args) {
-        Board board = new Board();
-        board.readInputFromFile();
-        board.printBoard();
+    // public static void main(String[] args) {
+    //     Board board = new Board();
+    //     board.readInputFromFile();
+    //     board.printBoard();
 
-        int mode = 2;
+    //     int mode = 2;
 
-        GBFS gbfsAlgo = new GBFS();
-        Result result = gbfsAlgo.run(board, mode);
+    //     GBFS gbfsAlgo = new GBFS();
+    //     Result result = gbfsAlgo.run(board, mode);
 
-        for (Board e : result.solutionStep) {
-            System.err.println();
-            e.printBoard();
-            System.err.println();
-        }
+    //     for (Board e : result.solutionStep) {
+    //         System.err.println();
+    //         e.printBoard();
+    //         System.err.println();
+    //     }
 
-        System.out.println("Waktu eksekusi: " + result.time + " ms");
-        System.out.println("Banyak node: " + result.nodes);
-    }
+    //     System.out.println("Waktu eksekusi: " + result.time + " ms");
+    //     System.out.println("Banyak node: " + result.nodes);
+    // }
 }

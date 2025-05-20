@@ -54,21 +54,21 @@ public class IDS extends Solver {
         return false;
     }
 
-    public static void main(String[] args) {
-        Board board = new Board();
-        board.readInputFromFile();
-        board.printBoard();
+    // public static void main(String[] args) {
+    //     Board board = new Board();
+    //     board.readInputFromFile();
+    //     board.printBoard();
 
-        IDS idsAlgo = new IDS();
-        Result result = idsAlgo.run(board);
+    //     IDS idsAlgo = new IDS();
+    //     Result result = idsAlgo.run(board);
 
-        for (Board e : result.solutionStep) {
-            System.err.println();
-            e.printBoard();
-            System.err.println();
-        }
+    //     for (Board e : result.solutionStep) {
+    //         System.err.println();
+    //         e.printBoard();
+    //         System.err.println();
+    //     }
 
-        System.out.println("Waktu eksekusi: " + result.time + " ms");
-        System.out.println("Banyak node: " + result.nodes);
-    }
+    //     System.out.println("Waktu eksekusi: " + result.time + " ms");
+    //     System.out.println("Banyak node: " + result.nodes);
+    // }
 }

@@ -37,23 +37,23 @@ public class AStar extends Solver {
         }
     }
 
-    public static void main(String[] args) {
-        Board board = new Board();
-        board.readInputFromFile();
-        board.printBoard();
+    // public static void main(String[] args) {
+    //     Board board = new Board();
+    //     board.readInputFromFile();
+    //     board.printBoard();
 
-        int mode = 3;
+    //     int mode = 3;
 
-        AStar aStarAlgo = new AStar();
-        Result result = aStarAlgo.run(board, mode);
+    //     AStar aStarAlgo = new AStar();
+    //     Result result = aStarAlgo.run(board, mode);
 
-        for (Board e : result.solutionStep) {
-            System.err.println();
-            e.printBoard();
-            System.err.println();
-        }
+    //     for (Board e : result.solutionStep) {
+    //         System.err.println();
+    //         e.printBoard();
+    //         System.err.println();
+    //     }
 
-        System.out.println("Waktu eksekusi: " + result.time + " ms");
-        System.out.println("Banyak node: " + result.nodes);
-    }
+    //     System.out.println("Waktu eksekusi: " + result.time + " ms");
+    //     System.out.println("Banyak node: " + result.nodes);
+    // }
 }

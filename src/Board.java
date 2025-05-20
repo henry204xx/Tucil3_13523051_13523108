@@ -700,32 +700,25 @@ public class Board {
     }
 
 
-    public static void main(String[] args) {
-        Board board = new Board();
-        board.readInputFromFile();
-        board.printBoard();
-        board.printPieces();
-        Board movedBoard = board.movePiece('I', "left");
-        Board board1 = board.movePiece('I', "left");
+    // public static void main(String[] args) {
+    //     Board board = new Board();
+    //     board.readInputFromFile();
+    //     board.printBoard();
+    //     board.printPieces();
+    //     Board movedBoard = board.movePiece('I', "left");
+    //     Board board1 = board.movePiece('I', "left");
 
-        if (movedBoard != null) {
-            movedBoard.printBoard();
-        } else {
-            System.out.println("Tidak bisa memindahkan kendaraan.");
-        }
+    //     if (movedBoard != null) {
+    //         movedBoard.printBoard();
+    //     } else {
+    //         System.out.println("Tidak bisa memindahkan kendaraan.");
+    //     }
 
-        if(movedBoard.equals(board1)){
-            System.err.println("hei ini sama");
-        }
-        if(movedBoard.hashCode() == board1.hashCode()){
-            System.err.println("hei ini sama hashnya");
-        }
-
-        //test primary piece position
-        List<int[]> primaryPositions = board.getPrimaryPiecePosition();
-        System.out.println("Posisi kendaraan utama 'P': ");
-        for (int[] pos : primaryPositions) {
-            System.out.print("[" + pos[0] + "," + pos[1] + "] ");
-        }
-    }
+    //     //test primary piece position
+    //     List<int[]> primaryPositions = board.getPrimaryPiecePosition();
+    //     System.out.println("Posisi kendaraan utama 'P': ");
+    //     for (int[] pos : primaryPositions) {
+    //         System.out.print("[" + pos[0] + "," + pos[1] + "] ");
+    //     }
+    // }
 }

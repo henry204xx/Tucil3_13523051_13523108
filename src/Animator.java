@@ -257,38 +257,48 @@ public class Animator extends JFrame {
             }
         }
         
-        if(algorithm.equals("GBFS")){
-            GBFS g = new GBFS();
-            Result res = g.run(this.curBoard, mode);
-            this.solutionSteps = res.solutionStep;
-            this.countNode = res.nodes;
-            this.execTime = res.time;
-            // this.curBoard = solutionSteps.getLast();
-            replaySolution();
-        }
-        else if(algorithm.equals("A*")){
-            AStar aStarAlgo = new AStar();
-            Result result = aStarAlgo.run(this.curBoard, mode);
-            this.solutionSteps = result.solutionStep;
-            this.countNode = result.nodes;
-            this.execTime = result.time;
-            replaySolution();
-        }
-        else if(algorithm.equals("UCS")){
-            UCS ucsAlgo = new UCS();
-            Result result = ucsAlgo.run(this.curBoard, -1);
-            this.solutionSteps = result.solutionStep;
-            this.countNode = result.nodes;
-            this.execTime = result.time;
-            replaySolution(); 
-        }
-        else if(algorithm.equals("IDS")){
-            IDS idsAlgo = new IDS();
-            Result result = idsAlgo.run(this.curBoard);
-            this.solutionSteps = result.solutionStep;
-            this.countNode = result.nodes;
-            this.execTime = result.time;
-            replaySolution(); 
+        switch (algorithm) {
+            case "GBFS":
+                GBFS g = new GBFS();
+                Result res = g.run(this.curBoard, mode);
+                this.solutionSteps = res.solutionStep;
+                this.countNode = res.nodes;
+                this.execTime = res.time;
+                // this.curBoard = solutionSteps.getLast();
+                replaySolution();
+                break;
+            case "A*":
+                {
+                    AStar aStarAlgo = new AStar();
+                    Result result = aStarAlgo.run(this.curBoard, mode);
+                    this.solutionSteps = result.solutionStep;
+                    this.countNode = result.nodes;
+                    this.execTime = result.time;
+                    replaySolution();
+                    break;
+                }
+            case "UCS":
+                {
+                    UCS ucsAlgo = new UCS();
+                    Result result = ucsAlgo.run(this.curBoard, -1);
+                    this.solutionSteps = result.solutionStep;
+                    this.countNode = result.nodes;
+                    this.execTime = result.time;
+                    replaySolution();
+                    break;
+                }
+            case "IDS":
+                { 
+                    IDS idsAlgo = new IDS();
+                    Result result = idsAlgo.run(this.curBoard);
+                    this.solutionSteps = result.solutionStep;
+                    this.countNode = result.nodes;
+                    this.execTime = result.time;
+                    replaySolution();
+                    break;
+                }
+            default:
+                break;
         }
         
                 
