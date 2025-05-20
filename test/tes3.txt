@@ -1,8 +1,9 @@
-4 4
-5
-.SS.
-BP.F
-BPRF
-DDR.
+5 5
+6
+.SS..
+BPFF.
+BPR..
+DDR..
+AA...
  K
 
